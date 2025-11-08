@@ -23,6 +23,8 @@ from rules.rule_engine import review_rules, tx_rules
 from pipelines.review_pipeline import engineer_review_features
 from pipelines.tx_pipeline import engineer_tx_features
 
+from db.models import Base, Review, Transaction, User, get_session
+
 # Load environment
 load_dotenv()
 
@@ -268,6 +270,20 @@ def internal_error(e):
 @app.errorhandler(413)
 def request_entity_too_large(e):
     return jsonify({"error": "Payload too large"}), 413
+
+# Database
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@localhost:5432/frauddb")
+
+try:
+    engine, SessionLocal = get_session(DATABASE_URL)
+    logger.info("✅ Database connection established")
+except Exception as e:
+    logger.error(f"❌ Database connection failed: {e}")
+    raise
+
+# Create scoped session
+from sqlalchemy.orm import scoped_session
+SessionLocal = scoped_session(SessionLocal)
 
 # ==================== STARTUP ====================
 

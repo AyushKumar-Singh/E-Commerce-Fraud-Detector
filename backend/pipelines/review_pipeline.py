@@ -24,9 +24,11 @@ def engineer_review_features(payload: Dict[str, Any], db: Session) -> Dict[str, 
     """
     features = {}
     
+    # ==================== PRESERVE ORIGINAL TEXT (CRITICAL!) ====================
+    features["review_text"] = str(payload.get("review_text", ""))
+    
     # ==================== TEXT FEATURES ====================
-    text = payload.get("review_text", "")
-    features["review_text"] = text
+    text = str(payload.get("review_text", ""))
     features["text_len"] = len(text)
     features["word_count"] = len(text.split())
     
@@ -56,7 +58,7 @@ def engineer_review_features(payload: Dict[str, Any], db: Session) -> Dict[str, 
     # Special patterns
     features["has_url"] = 1 if re.search(r'http[s]?://|www\.', text, re.I) else 0
     features["has_email"] = 1 if re.search(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', text) else 0
-    features["repeated_chars"] = len(re.findall(r'(.)\1{2,}', text))  # e.g., "sooo goood"
+    features["repeated_chars"] = len(re.findall(r'(.)\1{2,}', text))
     
     # ==================== RATING FEATURES ====================
     features["rating"] = float(payload.get("rating", 3))
@@ -66,7 +68,7 @@ def engineer_review_features(payload: Dict[str, Any], db: Session) -> Dict[str, 
     if user_id:
         user_avg = db.query(func.avg(Review.rating)).filter(
             Review.user_id == user_id,
-            Review.id != payload.get("review_id")  # exclude current review
+            Review.id != payload.get("review_id")
         ).scalar()
         
         if user_avg:
@@ -94,19 +96,16 @@ def engineer_review_features(payload: Dict[str, Any], db: Session) -> Dict[str, 
     
     # ==================== BEHAVIORAL FEATURES ====================
     if user_id:
-        # Reviews in last 30 days
         features["user_30d_review_count"] = db.query(func.count(Review.id)).filter(
             Review.user_id == user_id,
             Review.created_at >= now - timedelta(days=30)
         ).scalar() or 0
         
-        # Reviews in last 7 days
         features["user_7d_review_count"] = db.query(func.count(Review.id)).filter(
             Review.user_id == user_id,
             Review.created_at >= now - timedelta(days=7)
         ).scalar() or 0
         
-        # Reviews in last 1 hour
         features["user_1h_review_count"] = db.query(func.count(Review.id)).filter(
             Review.user_id == user_id,
             Review.created_at >= now - timedelta(hours=1)
@@ -121,13 +120,11 @@ def engineer_review_features(payload: Dict[str, Any], db: Session) -> Dict[str, 
     device = payload.get("device_fingerprint")
     
     if ip:
-        # Reviews from this IP in last 30 days
         features["ip_30d_review_count"] = db.query(func.count(Review.id)).filter(
             Review.ip_address == ip,
             Review.created_at >= now - timedelta(days=30)
         ).scalar() or 0
         
-        # Unique users from this IP
         features["ip_unique_users"] = db.query(func.count(func.distinct(Review.user_id))).filter(
             Review.ip_address == ip
         ).scalar() or 0
@@ -136,12 +133,10 @@ def engineer_review_features(payload: Dict[str, Any], db: Session) -> Dict[str, 
         features["ip_unique_users"] = 0
     
     if device:
-        # Reviews from this device
         features["device_review_count"] = db.query(func.count(Review.id)).filter(
             Review.device_fingerprint == device
         ).scalar() or 0
         
-        # Unique users from this device
         features["device_unique_users"] = db.query(func.count(func.distinct(Review.user_id))).filter(
             Review.device_fingerprint == device
         ).scalar() or 0
@@ -152,12 +147,10 @@ def engineer_review_features(payload: Dict[str, Any], db: Session) -> Dict[str, 
     # ==================== PRODUCT FEATURES ====================
     product_id = payload.get("product_id")
     if product_id:
-        # Total reviews for this product
         features["product_review_count"] = db.query(func.count(Review.id)).filter(
             Review.product_id == product_id
         ).scalar() or 0
         
-        # Average rating for this product
         product_avg = db.query(func.avg(Review.rating)).filter(
             Review.product_id == product_id
         ).scalar()
@@ -177,13 +170,51 @@ def batch_engineer_reviews(df: pd.DataFrame, db: Session) -> pd.DataFrame:
         db: Database session
     
     Returns:
-        DataFrame with engineered features
+        DataFrame with engineered features INCLUDING original review_text
     """
+    print(f"   Processing {len(df):,} reviews for feature engineering...")
+    
     features_list = []
     
-    for _, row in df.iterrows():
+    for idx, row in df.iterrows():
+        if idx % 1000 == 0:
+            print(f"   ... {idx:,}/{len(df):,}")
+        
         payload = row.to_dict()
         features = engineer_review_features(payload, db)
+        
+        # DOUBLE CHECK: Ensure review_text is present
+        if 'review_text' not in features or not features['review_text']:
+            features['review_text'] = str(payload.get('review_text', ''))
+        
+        # Preserve the label if it exists
+        if 'label_is_fake' in payload:
+            features['label_is_fake'] = payload['label_is_fake']
+        
         features_list.append(features)
     
-    return pd.DataFrame(features_list)
+    result_df = pd.DataFrame(features_list)
+    
+    # Verify review_text is present
+    if 'review_text' not in result_df.columns:
+        raise ValueError("ERROR: review_text column missing after feature engineering!")
+    
+    # Check if review_text is empty
+    empty_count = (result_df['review_text'].str.len() == 0).sum()
+    if empty_count > len(result_df) * 0.5:
+        raise ValueError(f"ERROR: {empty_count:,} reviews have empty text!")
+    
+    # Reorder columns: review_text first
+    cols = ['review_text'] + [c for c in result_df.columns if c != 'review_text' and c != 'label_is_fake']
+    if 'label_is_fake' in result_df.columns:
+        cols.append('label_is_fake')
+    result_df = result_df[cols]
+    
+    # Ensure label is integer
+    if 'label_is_fake' in result_df.columns:
+        result_df['label_is_fake'] = result_df['label_is_fake'].astype(int)
+    
+    print(f"   ✅ Feature engineering complete: {result_df.shape[1]} features")
+    print(f"   ✅ Review text preserved: avg length = {result_df['review_text'].str.len().mean():.1f}")
+    
+    return result_df

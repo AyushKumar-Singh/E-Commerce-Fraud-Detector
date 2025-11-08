@@ -3,12 +3,14 @@ SQLAlchemy ORM models for fraud detection system
 """
 
 from sqlalchemy import (
+    create_engine,
     Column, Integer, BigInteger, Text, Boolean, 
     Numeric, TIMESTAMP, ForeignKey, CheckConstraint
 )
 from sqlalchemy.dialects.postgresql import JSONB, INET
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker, Session
 from sqlalchemy.sql import func
+from typing import Tuple
 
 Base = declarative_base()
 
@@ -78,3 +80,24 @@ class Label(Base):
     __table_args__ = (
         CheckConstraint("entity_type IN ('review', 'transaction')", name='valid_entity_type'),
     )
+
+# Database session factory
+def get_session(db_url: str) -> Tuple[any, sessionmaker]:
+    """
+    Create database engine and session factory
+    
+    Args:
+        db_url: Database connection URL
+        
+    Returns:
+        Tuple of (engine, SessionLocal)
+    """
+    engine = create_engine(db_url, pool_pre_ping=True, pool_size=10, max_overflow=20)
+    SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+    return engine, SessionLocal
+
+def create_tables(db_url: str):
+    """Create all tables in the database"""
+    engine = create_engine(db_url)
+    Base.metadata.create_all(bind=engine)
+    print("✅ Database tables created successfully")
