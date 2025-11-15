@@ -5,12 +5,12 @@ SQLAlchemy ORM models for fraud detection system
 from sqlalchemy import (
     create_engine,
     Column, Integer, BigInteger, Text, Boolean, 
-    Numeric, TIMESTAMP, ForeignKey, CheckConstraint
+    Numeric, TIMESTAMP, ForeignKey, CheckConstraint, JSON
 )
-from sqlalchemy.dialects.postgresql import JSONB, INET
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker, Session
 from sqlalchemy.sql import func
 from typing import Tuple
+import os
 
 Base = declarative_base()
 
@@ -34,14 +34,14 @@ class Review(Base):
     product_id = Column(Text, index=True)
     review_text = Column(Text, nullable=False)
     rating = Column(Numeric)
-    created_at = Column(TIMESTAMP, server_default=func.now(), index=True)
-    ip_address = Column(INET)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    ip_address = Column(Text)  # Changed from INET for SQLite compatibility
     device_fingerprint = Column(Text, index=True)
     
     # Fraud detection fields
     is_fake_pred = Column(Boolean, index=True)
     fake_score = Column(Numeric)
-    decision_json = Column(JSONB)
+    decision_json = Column(JSON)  # Changed from JSONB for SQLite compatibility
     
     user = relationship("User", back_populates="reviews")
 
@@ -54,14 +54,14 @@ class Transaction(Base):
     amount = Column(Numeric, nullable=False)
     currency = Column(Text, default='INR')
     device_fingerprint = Column(Text, index=True)
-    ip_address = Column(INET)
+    ip_address = Column(Text)  # Changed from INET for SQLite compatibility
     channel = Column(Text)
     created_at = Column(TIMESTAMP, server_default=func.now(), index=True)
     
     # Fraud detection fields
     is_fraud_pred = Column(Boolean, index=True)
     fraud_score = Column(Numeric)
-    decision_json = Column(JSONB)
+    decision_json = Column(JSON)  # Changed from JSONB for SQLite compatibility
     
     user = relationship("User", back_populates="transactions")
 

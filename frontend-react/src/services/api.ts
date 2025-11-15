@@ -1,21 +1,110 @@
 import axios, { AxiosInstance } from 'axios';
-import { 
-  ReviewPayload, 
-  TransactionPayload, 
-  ReviewPrediction, 
-  TransactionPrediction,
-  FraudStats,
-  TrendData,
-  TopOffender,
-  RecentFlag
-} from '@/types';
 
-class FraudDetectorAPI {
+export interface Transaction {
+  id: string | number;
+  user_id: number;
+  amount: number;
+  timestamp?: string;
+  created_at: string;
+  status: 'flagged' | 'safe' | 'pending';
+  fraud_score: number;
+  confidence_score?: number;
+  location?: string;
+  ip_address?: string;
+  device_fingerprint?: string;
+  channel?: string;
+  currency?: string;
+  is_fraud_pred: boolean;
+  decision_json?: {
+    decision: boolean;
+    score_final: number;
+    score_model: number;
+    score_rules: number;
+    confidence: string;
+    reasons: string[];
+  };
+}
+
+export interface Review {
+  id: string | number;
+  product_id?: string;
+  user_id: number;
+  review_text: string;
+  rating: number;
+  sentiment?: 'Positive' | 'Neutral' | 'Fake';
+  sentiment_score?: number;
+  confidence_score?: number;
+  created_at: string;
+  timestamp?: string;
+  ip_address?: string;
+  device_fingerprint?: string;
+  is_fake_pred: boolean;
+  fake_score: number;
+  decision_json?: {
+    decision: boolean;
+    score_final: number;
+    score_model: number;
+    score_rules: number;
+    confidence: string;
+    reasons: string[];
+  };
+}
+
+export interface DashboardStats {
+  reviews: {
+    today: { total: number; flagged: number };
+    week: { total: number; flagged: number };
+    month: { total: number; flagged: number };
+  };
+  transactions: {
+    today: { total: number; flagged: number; total_amount: number; flagged_amount: number };
+    week: { total: number; flagged: number };
+    month: { total: number; flagged: number };
+  };
+  timestamp: string;
+}
+
+export interface TrendData {
+  date: string;
+  total: number;
+  flagged: number;
+  avg_score: number;
+  flag_rate: number;
+  total_amount?: number;
+}
+
+export interface TopOffender {
+  ip?: string;
+  device?: string;
+  user_id?: number;
+  email?: string;
+  total: number;
+  flagged: number;
+  flag_rate: number;
+  total_amount?: number;
+}
+
+export interface RecentFlag {
+  id: number;
+  user_id: number;
+  product_id?: string;
+  text?: string;
+  rating?: number;
+  amount?: number;
+  currency?: string;
+  score: number;
+  reasons: string[];
+  created_at: string;
+  ip?: string;
+  channel?: string;
+}
+
+class APIService {
   private client: AxiosInstance;
 
   constructor() {
     this.client = axios.create({
-      baseURL: import.meta.env.VITE_API_URL || '/api',
+      baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
@@ -38,9 +127,11 @@ class FraudDetectorAPI {
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401) {
+        // Don't redirect on login endpoint failures
+        if (error.response?.status === 401 && !error.config?.url?.includes('/auth/token')) {
           localStorage.removeItem('api_token');
-          window.location.href = '/login';
+          // Force app re-render by dispatching storage event
+          window.dispatchEvent(new Event('storage'));
         }
         return Promise.reject(error);
       }
@@ -53,19 +144,14 @@ class FraudDetectorAPI {
     return data;
   }
 
-  // Predictions
-  async predictReview(payload: ReviewPayload): Promise<ReviewPrediction> {
-    const { data } = await this.client.post('/predict/review', payload);
-    return data;
-  }
-
-  async predictTransaction(payload: TransactionPayload): Promise<TransactionPrediction> {
-    const { data } = await this.client.post('/predict/transaction', payload);
+  // Authentication
+  async login(secret: string): Promise<{ token: string }> {
+    const { data } = await this.client.post('/auth/token', { secret });
     return data;
   }
 
   // Dashboard data
-  async getStats(): Promise<FraudStats> {
+  async getStats(): Promise<DashboardStats> {
     const { data } = await this.client.get('/dashboard/api/stats');
     return data;
   }
@@ -89,11 +175,30 @@ class FraudDetectorAPI {
     return data;
   }
 
-  // Authentication
-  async login(secret: string): Promise<{ token: string }> {
-    const { data } = await this.client.post('/auth/token', { secret });
+  // Predictions
+  async predictReview(payload: {
+    user_id: number;
+    product_id?: string;
+    review_text: string;
+    rating: number;
+    ip_address?: string;
+    device_fingerprint?: string;
+  }) {
+    const { data } = await this.client.post('/predict/review', payload);
+    return data;
+  }
+
+  async predictTransaction(payload: {
+    user_id: number;
+    amount: number;
+    currency?: string;
+    channel?: string;
+    ip_address?: string;
+    device_fingerprint?: string;
+  }) {
+    const { data } = await this.client.post('/predict/transaction', payload);
     return data;
   }
 }
 
-export const api = new FraudDetectorAPI();
+export const api = new APIService();

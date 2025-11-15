@@ -4,18 +4,25 @@ Production-ready Flask application with fraud detection endpoints
 """
 
 import os
+import sys
 import json
 import joblib
 import logging
 from datetime import datetime
 from flask import Flask, request, jsonify, g
+from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-from db.models import Base, Review, Transaction, User
+# Fix Unicode encoding for Windows
+if sys.platform == 'win32':
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+
+from db.models import Base, Review, Transaction, User, get_session
 from utils.auth import require_token, create_token
 from utils.xai import assemble_decision
 from utils.logging_conf import setup_logging
@@ -23,14 +30,26 @@ from rules.rule_engine import review_rules, tx_rules
 from pipelines.review_pipeline import engineer_review_features
 from pipelines.tx_pipeline import engineer_tx_features
 
-from db.models import Base, Review, Transaction, User, get_session
-
 # Load environment
 load_dotenv()
 
 # Initialize Flask
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB max payload
+
+# Enable CORS for frontend
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "https://yourdomain.com",  # CHANGE: Add your production domain
+            "https://www.yourdomain.com"  # CHANGE: Add www version if needed
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "X-API-Key", "Authorization"]
+    }
+})
 
 # Setup logging
 logger = setup_logging()
@@ -43,28 +62,85 @@ limiter = Limiter(
     storage_uri="memory://"
 )
 
-# Database
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@localhost:5432/frauddb")
-engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_size=10, max_overflow=20)
-SessionLocal = scoped_session(sessionmaker(bind=engine, autocommit=False, autoflush=False))
+# Get absolute paths - THIS IS THE KEY FIX
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = os.path.join(BASE_DIR, "models")
 
 # Model configuration
 REVIEW_THR = float(os.getenv("REVIEW_THR", "0.65"))
 TX_THR = float(os.getenv("TX_THR", "0.50"))
-MODEL_PATH = os.getenv("MODEL_PATH", "backend/models")
 
-# Load ML models
+# Log the actual paths being used
+logger.info(f"Base directory: {BASE_DIR}")
+logger.info(f"Model directory: {MODEL_DIR}")
+logger.info(f"Current working directory: {os.getcwd()}")
+
+# Database setup
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@localhost:5432/frauddb")
+
 try:
-    review_model = joblib.load(f"{MODEL_PATH}/review_model.pkl")
-    tx_artifact = joblib.load(f"{MODEL_PATH}/tx_model.pkl")
-    tx_model = tx_artifact["pipe"]
-    tx_features = tx_artifact["features"]
-    logger.info("✅ Models loaded successfully")
+    engine, SessionLocal = get_session(DATABASE_URL)
+    SessionLocal = scoped_session(SessionLocal)
+    logger.info("Database connection established successfully")
 except Exception as e:
-    logger.error(f"❌ Model loading failed: {e}")
-    review_model = None
-    tx_model = None
-    tx_features = []
+    logger.error(f"Database connection failed: {e}")
+    raise
+
+# Load ML models with proper error handling
+review_model = None
+tx_model = None
+tx_features = []
+
+def load_models():
+    """Load ML models with proper path resolution and error handling"""
+    global review_model, tx_model, tx_features
+    
+    review_model_path = os.path.join(MODEL_DIR, "review_model.pkl")
+    tx_model_path = os.path.join(MODEL_DIR, "tx_model.pkl")
+    
+    try:
+        # Check if model directory exists
+        if not os.path.exists(MODEL_DIR):
+            logger.error(f"Model directory does not exist: {MODEL_DIR}")
+            logger.info("Please ensure models are in the correct location")
+            return False
+        
+        # List all files in model directory
+        logger.info(f"Files in model directory: {os.listdir(MODEL_DIR)}")
+        
+        # Load review model
+        if os.path.exists(review_model_path):
+            review_model = joblib.load(review_model_path)
+            logger.info(f"Review model loaded successfully from: {review_model_path}")
+        else:
+            logger.warning(f"Review model not found at: {review_model_path}")
+        
+        # Load transaction model
+        if os.path.exists(tx_model_path):
+            tx_artifact = joblib.load(tx_model_path)
+            tx_model = tx_artifact["pipe"]
+            tx_features = tx_artifact["features"]
+            logger.info(f"Transaction model loaded successfully from: {tx_model_path}")
+        else:
+            logger.warning(f"Transaction model not found at: {tx_model_path}")
+        
+        if review_model is not None and tx_model is not None:
+            logger.info("All models loaded successfully")
+            return True
+        else:
+            logger.warning("Some models failed to load")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Model loading failed: {e}", exc_info=True)
+        return False
+
+# Load models on startup
+models_loaded = load_models()
+
+# Register blueprints
+from dashboard import dashboard_bp
+app.register_blueprint(dashboard_bp)
 
 # ==================== DATABASE HELPERS ====================
 
@@ -89,7 +165,11 @@ def health():
     return jsonify({
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
-        "models_loaded": review_model is not None and tx_model is not None
+        "models_loaded": {
+            "review_model": review_model is not None,
+            "tx_model": tx_model is not None
+        },
+        "database": "connected"
     }), 200
 
 @app.route("/auth/token", methods=["POST"])
@@ -141,7 +221,7 @@ def predict_review():
         
         # Model prediction
         if review_model is None:
-            return jsonify({"error": "Model not loaded"}), 503
+            return jsonify({"error": "Review model not loaded"}), 503
         
         proba = float(review_model.predict_proba([features])[0, 1])
         
@@ -175,6 +255,7 @@ def predict_review():
         
     except Exception as e:
         logger.error(f"Review prediction error: {e}", exc_info=True)
+        db = get_db()
         db.rollback()
         return jsonify({"error": "Internal server error"}), 500
 
@@ -214,7 +295,7 @@ def predict_transaction():
         
         # Model prediction (Isolation Forest returns anomaly scores)
         if tx_model is None:
-            return jsonify({"error": "Model not loaded"}), 503
+            return jsonify({"error": "Transaction model not loaded"}), 503
         
         X = [[features.get(f, 0) for f in tx_features]]
         anomaly_score = float(-tx_model.score_samples(X)[0])
@@ -253,8 +334,25 @@ def predict_transaction():
         
     except Exception as e:
         logger.error(f"Transaction prediction error: {e}", exc_info=True)
+        db = get_db()
         db.rollback()
         return jsonify({"error": "Internal server error"}), 500
+    
+# ==================== HOME ROUTE ====================
+
+@app.route("/")
+def home():
+    """Root endpoint"""
+    return jsonify({
+        "status": "Fraud Detector API is running",
+        "version": "1.0.0",
+        "endpoints": {
+            "health": "/health",
+            "auth": "/auth/token",
+            "review_prediction": "/predict/review",
+            "transaction_prediction": "/predict/transaction"
+        }
+    }), 200
 
 # ==================== ERROR HANDLERS ====================
 
@@ -271,24 +369,25 @@ def internal_error(e):
 def request_entity_too_large(e):
     return jsonify({"error": "Payload too large"}), 413
 
-# Database
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@localhost:5432/frauddb")
-
-try:
-    engine, SessionLocal = get_session(DATABASE_URL)
-    logger.info("✅ Database connection established")
-except Exception as e:
-    logger.error(f"❌ Database connection failed: {e}")
-    raise
-
-# Create scoped session
-from sqlalchemy.orm import scoped_session
-SessionLocal = scoped_session(SessionLocal)
-
 # ==================== STARTUP ====================
 
 if __name__ == "__main__":
     # Create tables if they don't exist
-    Base.metadata.create_all(bind=engine)
-    logger.info("🚀 Starting Fraud Detector API...")
-    app.run(host="0.0.0.0", port=8000, debug=os.getenv("FLASK_DEBUG", "false").lower() == "true")
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created/verified successfully")
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {e}")
+    
+    logger.info("=" * 60)
+    logger.info("Starting Fraud Detector API...")
+    logger.info(f"Models loaded: {models_loaded}")
+    logger.info(f"Database: Connected")
+    logger.info(f"Listening on: http://0.0.0.0:8000")
+    logger.info("=" * 60)
+    
+    app.run(
+        host="0.0.0.0", 
+        port=8000, 
+        debug=os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    )

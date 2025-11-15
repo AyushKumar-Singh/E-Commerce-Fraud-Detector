@@ -19,6 +19,55 @@ dist-ssr
 .env.test.local
 .env.production.local
 
+# Secrets (additional)
+# Ignore all env variants except intentionally committed examples
+.env*
+!.env.example
+
+# Common secret/config files
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.crt
+*.der
+*.secret
+*.secrets
+secrets.yml
+credentials.yml
+credentials.json
+service-account*.json
+*-credentials.json
+serviceAccountKey*.json
+google-services.json
+GoogleService-Info.plist
+.aws/credentials
+.aws/config
+.gcloud/
+.gcp/
+.azure/
+.vault/
+.vault-token
+.terraform.tfstate
+*.tfstate
+*.tfstate.backup
+terraform.tfvars
+.terraform/
+
+# Package manager tokens & netrc
+.npmrc
+.yarnrc
+.pnpmfile.js
+.npm/_auth*
+.netrc
+
+# Docker / Kubernetes secrets
+docker-compose.override.yml
+.kube/
+secrets.yaml
+*.secret.yaml
+
 # Logs
 logs
 *.log
@@ -39,6 +88,11 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Private editor history / caches
+.history
+*.sublime-workspace
+*.sublime-project
 
 # Backend specific
 uploads/
@@ -61,7 +115,21 @@ public/hot
 Thumbs.db
 desktop.ini
 
-# Package manager
+# SSH keys (if accidentally committed)
+id_rsa
+id_rsa.pub
+id_dsa
+id_ecdsa
+id_ed25519
+.ssh/
+
+# Mobile / CI secrets
+fastlane/Matchfile
+fastlane/report.xml
+fastlane/credentials.json
+app-release-key.keystore
+
+# Package manager locks (if you intentionally track them, remove)
 yarn.lock
 package-lock.json
 pnpm-lock.yaml

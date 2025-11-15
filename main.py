@@ -1,13 +1,12 @@
-import os
-from sqlalchemy import create_engine
-from dotenv import load_dotenv
+import psycopg2
 
-load_dotenv()
-url = os.getenv("DATABASE_URL")
+conn = psycopg2.connect(
+    host="127.0.0.1",
+    database="frauddb",
+    user="fraud_user",
+    password="ayush123",
+    port="5432"
+)
 
-engine = create_engine(url)
-try:
-    with engine.connect() as conn:
-        print("✅ Connected successfully with current .env config!")
-except Exception as e:
-    print("❌ Connection failed:", e)
+print("✅ Connected to PostgreSQL")
+conn.close()

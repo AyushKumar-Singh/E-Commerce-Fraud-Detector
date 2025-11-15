@@ -109,6 +109,7 @@ def get_stats():
 def get_trends():
     """Get daily fraud trends for charts"""
     from app import get_db
+    from sqlalchemy import Integer
     db = get_db()
     
     days = int(request.args.get('days', 30))
@@ -118,7 +119,7 @@ def get_trends():
     review_trends = db.query(
         func.date(Review.created_at).label('date'),
         func.count(Review.id).label('total'),
-        func.sum(func.cast(Review.is_fake_pred, db.Integer)).label('flagged'),
+        func.sum(func.cast(Review.is_fake_pred, Integer)).label('flagged'),
         func.avg(Review.fake_score).label('avg_score')
     ).filter(
         Review.created_at >= start_date
@@ -130,7 +131,7 @@ def get_trends():
     tx_trends = db.query(
         func.date(Transaction.created_at).label('date'),
         func.count(Transaction.id).label('total'),
-        func.sum(func.cast(Transaction.is_fraud_pred, db.Integer)).label('flagged'),
+        func.sum(func.cast(Transaction.is_fraud_pred, Integer)).label('flagged'),
         func.avg(Transaction.fraud_score).label('avg_score'),
         func.sum(Transaction.amount).label('total_amount')
     ).filter(
@@ -168,6 +169,7 @@ def get_trends():
 def get_top_offenders():
     """Get top flagged IPs, devices, and users"""
     from app import get_db
+    from sqlalchemy import Integer
     db = get_db()
     
     limit = int(request.args.get('limit', 10))
@@ -176,7 +178,7 @@ def get_top_offenders():
     top_ips = db.query(
         Review.ip_address,
         func.count(Review.id).label('total'),
-        func.sum(func.cast(Review.is_fake_pred, db.Integer)).label('flagged')
+        func.sum(func.cast(Review.is_fake_pred, Integer)).label('flagged')
     ).filter(
         Review.ip_address.isnot(None),
         Review.created_at >= datetime.utcnow() - timedelta(days=7)
@@ -190,7 +192,7 @@ def get_top_offenders():
     top_devices = db.query(
         Review.device_fingerprint,
         func.count(Review.id).label('total'),
-        func.sum(func.cast(Review.is_fake_pred, db.Integer)).label('flagged')
+        func.sum(func.cast(Review.is_fake_pred, Integer)).label('flagged')
     ).filter(
         Review.device_fingerprint.isnot(None),
         Review.created_at >= datetime.utcnow() - timedelta(days=7)
@@ -205,7 +207,7 @@ def get_top_offenders():
         Transaction.user_id,
         User.email,
         func.count(Transaction.id).label('total'),
-        func.sum(func.cast(Transaction.is_fraud_pred, db.Integer)).label('flagged'),
+        func.sum(func.cast(Transaction.is_fraud_pred, Integer)).label('flagged'),
         func.sum(Transaction.amount).label('total_amount')
     ).join(
         User, Transaction.user_id == User.id

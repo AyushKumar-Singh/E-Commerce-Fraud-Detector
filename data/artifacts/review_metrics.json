@@ -1,0 +1,12 @@
+{
+  "model": "LogisticRegression",
+  "cv_roc_auc_mean": 1.0,
+  "cv_roc_auc_std": 0.0,
+  "train_roc_auc": 1.0,
+  "test_roc_auc": 1.0,
+  "optimal_threshold": 0.9430571585897131,
+  "optimal_f1": 1.0,
+  "train_samples": 8000,
+  "test_samples": 2000,
+  "n_features": 26
+}
