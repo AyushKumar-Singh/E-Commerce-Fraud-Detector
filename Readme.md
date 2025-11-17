@@ -1,271 +1,224 @@
-# React + TypeScript + Vite
+# 🚨 E-Commerce Fraud Detector  
+### **AI-Powered Fraud & Fake Review Detection System**
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack, production-ready fraud detection platform combining **NLP**, **anomaly detection**, **behavioral analytics**, and a secure **Flask + PostgreSQL backend**.  
+Designed to help e-commerce platforms detect and prevent fraudulent activities in real time.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ⭐ Overview  
+The **E-Commerce Fraud Detector** is a dual-module AI system built to identify:
 
-## React Compiler
+- Fraudulent or suspicious e-commerce transactions  
+- Fake, manipulated, or bot-generated product reviews  
+- Abnormal behavioral patterns such as velocity spikes or device/IP anomalies  
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+The project integrates **ML models**, **real-time APIs**, **security layers**, and **scalable deployment** using Docker.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🎯 Objectives  
+- Detect fake reviews using NLP-based sentiment and authenticity scoring  
+- Identify abnormal transactions using Isolation Forest  
+- Analyze user patterns, IP/device fingerprints, and spending behavior  
+- Provide secure, real-time fraud prediction via Flask API  
+- Create explainable fraud insights for business decision-making  
+- Deploy as a scalable microservice architecture using Docker  
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🔥 Unique Features
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 🧠 **Dual AI Modules**
+#### **1. Fake Review Detector**
+- NLP preprocessing (tokenization, stopwords, lemmatization)  
+- Sentiment analysis  
+- Logistic Regression classifier  
+- Text authenticity heuristics  
+
+#### **2. Transaction Fraud Detector**
+- Isolation Forest anomaly detection  
+- Statistical feature extraction  
+- Velocity checks & behavioral flags  
+- IP/device fingerprint consistency  
+
+---
+
+### 🛡️ Security & Reliability
+- JWT-based authentication  
+- Hybrid AI + rule-based verification  
+- Device/IP fingerprinting  
+- Confidence scores via XAI  
+- Rate limiting & request validation  
+
+---
+
+### 📊 Behavioral Analytics
+- Spending spike detection  
+- Review frequency patterns  
+- User trust scoring  
+- Admin-level fraud insights dashboard (optional React app)
+
+---
+
+## ⚠️ Risks & Mitigation
+
+| Risk Type | Description | Mitigation |
+|----------|-------------|------------|
+| False Positives | Legit users mistakenly flagged | Threshold tuning, XAI scoring |
+| Evasion Attempts | Fraudsters modify patterns | Hybrid rules, pattern randomization |
+| Data Drift | Behavior changes over time | Retraining pipelines |
+| Automated Bots | Manipulated reviews | NLP classifiers + spam detection |
+| Misinformation | Fake textual patterns | Review authenticity features |
+
+---
+
+## 🏗️ Tech Stack
+
+### **Backend**
+- Python  
+- Flask  
+- scikit-learn  
+- NLTK  
+- SQLAlchemy  
+
+### **Database**
+- PostgreSQL  
+
+### **Deployment**
+- Docker / Docker Compose  
+- REST API endpoints  
+- Token authentication  
+
+### **Frontend (Optional Dashboard)**
+- React  
+- TypeScript  
+- Vite  
+- Tailwind CSS  
+- Fraud insights data visualization  
+
+---
+
+## 🧠 Machine Learning Models
+
+| Module | Model | Purpose |
+|--------|--------|---------|
+| Fake Review Detector | Logistic Regression | Detect fake/manipulated reviews |
+| Fraud Transaction Detector | Isolation Forest | Identify abnormal spending patterns |
+
+---
+
+## 📊 Key Analytical Features
+- Sentiment scoring  
+- Review authenticity heuristics  
+- Transaction velocity & spikes  
+- User trust score  
+- Device/IP risk scoring  
+- Multi-metric fraud score  
+
+---
+
+## 🚀 Installation & Setup
+
+### **Clone the repository**
+```bash
+git clone https://github.com/yourusername/E-Commerce-Fraud-Detector.git
+cd E-Commerce-Fraud-Detector
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🔧 Backend Setup (Flask API)
+```bash
+cd backend
+pip install -r requirements.txt
 ```
 
-# E-Commerce Fraud Detector
+Create `.env`:
+```
+DATABASE_URL=postgresql://user:password@localhost:5432/frauddb
+SECRET_KEY=your_secret_key
+```
 
-A full‑stack project (React + TypeScript frontend, Node backend) for detecting potential fraud in e‑commerce transactions.
-
-This README provides concise setup, run and test instructions for both frontend and backend on Windows.
-
----
-
-## Prerequisites
-
-- Node.js 18+ (or the version your project expects)
-- npm (comes with Node) — or yarn / pnpm if used by the repo
-- Git
-- (Optional) Docker & Docker Compose if the repo includes Docker configs
-- (Optional) Database client (Postgres / MySQL) if a database is required
-
-Verify Node/npm:
-- PowerShell / CMD:
-  - node -v
-  - npm -v
+Run development server:
+```bash
+python app.py
+```
 
 ---
 
-## Repository layout (typical)
-Adjust paths below if your repo differs.
+## 🎨 Frontend Setup (Optional React Dashboard)
 
-- /frontend — React + Vite app
-- /backend — Node (Express / Nest / Fastify) API
-- .env.example — example environment file
-- .gitignore — secrets and generated files ignored
-
----
-
-## Initial setup (one-time)
-
-1. Clone:
-   - git clone <repo-url>
-   - cd "E-Commerce Fraud Detector"
-
-2. Copy env examples:
-   - PowerShell:
-     - cp .env.example .env
-   - CMD:
-     - copy .env.example .env
-   - Fill required values in `.env`.
-
-
-3. Install root dependencies (if monorepo scripts exist) or install per side below.
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
 ---
 
-## Frontend
+## 🐳 Docker Deployment
 
-From repo root:
+```bash
+docker compose up --build
+```
 
-- Enter frontend:
-  - cd frontend
-
-- Install:
-  - npm install
-  - Or: yarn / pnpm install
-
-- Run dev server (Vite):
-  - npm run dev
-  - The terminal will show the local URL (usually http://localhost:5173)
-
-- Build for production:
-  - npm run build
-  - Preview production build:
-    - npm run preview
-
-- Tests & lint (if configured):
-  - npm test
-  - npm run lint
-  - npm run format
-
-Notes:
-- If using a specific Node version, consider using nvm or .nvmrc.
+Stop:
+```bash
+docker compose down
+```
 
 ---
 
-## Backend
+## 📡 API Endpoints
 
-From repo root:
+### **POST /predict/review**
+Input:
+```json
+{
+  "review_text": "The product was amazing!"
+}
+```
 
-- Enter backend:
-  - cd backend
-
-- Install:
-  - npm install
-
-- Environment:
-  - Ensure `.env` contains API_PORT, DATABASE_URL, and other keys required by backend.
-
-- Run in development:
-  - npm run dev
-    - (typically uses nodemon / ts-node-dev to reload on changes)
-
-- Run production:
-  - npm run build
-  - npm start
-
-- Database migrations (if using Prisma / TypeORM / Sequelize):
-  - Prisma example:
-    - npx prisma generate
-    - npx prisma migrate dev --name init
-  - TypeORM / Sequelize: run the project-specific migration command.
-
-- Tests & lint:
-  - npm test
-  - npm run lint
+### **POST /predict/transaction**
+Input:
+```json
+{
+  "amount": 2500,
+  "ip": "192.168.0.12",
+  "device": "mobile",
+  "frequency": 12
+}
+```
 
 ---
 
-## Running frontend + backend together
+## 🧪 Testing
 
-Option A — manually:
-- Open two terminals:
-  - Terminal 1 (frontend):
-    - cd frontend
-    - npm run dev
-  - Terminal 2 (backend):
-    - cd backend
-    - npm run dev
-
-Option B — docker / docker-compose:
-- If docker-compose.yml exists:
-  - docker compose up --build
-  - (Stop with docker compose down)
+```bash
+pytest
+```
 
 ---
 
-## Environment files
-
-Add private keys & secrets only to `.env` (do not commit). Your .gitignore already ignores `.env*` while allowing `.env.example`. Example `.env.example`:
-
-NODE_ENV=development
-PORT=4000
-API_URL=http://localhost:4000
-FRONTEND_PORT=5173
-DATABASE_URL=postgresql://user:pass@localhost:5432/dbname
-JWT_SECRET=replace_me
-# Add any other required variables here
-
-Copy `.env.example` -> `.env` and fill values.
+## 🧭 Future Enhancements
+- BERT/LSTM for more accurate review authenticity detection  
+- Blockchain verification for transaction integrity  
+- Advanced fraud dashboard with alerts  
+- SaaS multi-tenant architecture  
+- Online learning pipeline for continuous training  
+- Image-based fake product detection  
 
 ---
 
-## Security / Secrets
-
-- Do not commit `.env` or any secret files.
-- .gitignore is configured to hide common secret files (keys, creds, service accounts).
-- If sensitive data was accidentally committed, rotate the secret and remove it from git history (use git filter-repo or BFG).
+## 🤝 Contributing  
+Pull requests are welcome — ensure that tests pass and code is formatted properly.
 
 ---
 
-## Common troubleshooting
+## 👤 Author  
+**Ayush Kumar Singh**  
+AI Systems Architect & LLM Infrastructure Engineer  
+LinkedIn: ayush-kumar-singh  
+GitHub: AyushKumar-Singh
 
-- "Port already in use": change port in `.env` or kill the process.
-- Missing scripts: check package.json in frontend/backend for available scripts.
-- DB connection errors: ensure database is running and DATABASE_URL is correct.
-- If packages fail to install: remove node_modules and lock files, then reinstall:
-  - rm -rf node_modules
-  - npm install
-
-(Windows CMD / PowerShell: use rd /s /q node_modules)
-
----
-
-## Tests, linting & formatting
-
-- Run tests:
-  - cd frontend || cd backend
-  - npm test
-
-- Lint:
-  - npm run lint
-
-- Auto-format:
-  - npm run format
-
-Adjust commands to match scripts in each package.json.
-
----
-
-## Contributing
-
-1. Create a feature branch
-2. Run lint & tests locally
-3. Open a pull request with a clear description
-
----
-
-## If you want, I can:
-- Inspect specific package.json scripts and update this README with exact commands.
-- Add a sample .env.example based on backend/frontend config.
-- Add docker-compose example if you use containers.
