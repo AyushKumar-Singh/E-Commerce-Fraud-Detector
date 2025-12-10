@@ -1,0 +1,48 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: fraud-detector
+
+namespace: fraud-detector
+
+# Resources to deploy (order matters!)
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secrets.example.yaml  # Rename to secrets.yaml after customizing
+  - postgres-deployment.yaml
+  - backend-deployment.yaml
+  - frontend-deployment.yaml
+  - ingress.yaml
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/name: fraud-detector
+  app.kubernetes.io/managed-by: kustomize
+
+# Image tags can be overridden per environment
+images:
+  - name: fraud-detector-api
+    newTag: latest
+  - name: fraud-detector-ui
+    newTag: latest
+
+# Configuration generators (optional)
+# configMapGenerator:
+#   - name: fraud-detector-config-extra
+#     literals:
+#       - EXTRA_VAR=value
+
+# Secret generators (optional, for sealed secrets)
+# secretGenerator:
+#   - name: fraud-detector-secrets-extra
+#     literals:
+#       - EXTRA_SECRET=value
+
+# Patches for environment-specific changes
+# patches:
+#   - path: patches/production.yaml
+#     target:
+#       kind: Deployment
+#       name: backend

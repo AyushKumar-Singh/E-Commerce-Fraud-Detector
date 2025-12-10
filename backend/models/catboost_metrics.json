@@ -1,0 +1,58 @@
+{
+  "accuracy": 99.27,
+  "precision": 17.58,
+  "recall": 86.49,
+  "f1_score": 29.22,
+  "auc_roc": 97.14,
+  "trained_at": "2025-12-09T17:07:11.711536",
+  "dataset_size": 42722,
+  "model_type": "CatBoostClassifier",
+  "confusion_matrix": {
+    "true_negatives": 42348,
+    "false_positives": 300,
+    "false_negatives": 10,
+    "true_positives": 64
+  },
+  "top_features": [
+    {
+      "name": "V14",
+      "importance": 18.6
+    },
+    {
+      "name": "V4",
+      "importance": 10.57
+    },
+    {
+      "name": "V12",
+      "importance": 8.43
+    },
+    {
+      "name": "V6",
+      "importance": 5.94
+    },
+    {
+      "name": "V8",
+      "importance": 4.83
+    },
+    {
+      "name": "V10",
+      "importance": 4.69
+    },
+    {
+      "name": "Amount",
+      "importance": 3.73
+    },
+    {
+      "name": "V28",
+      "importance": 3.54
+    },
+    {
+      "name": "V16",
+      "importance": 3.31
+    },
+    {
+      "name": "V11",
+      "importance": 3.26
+    }
+  ]
+}

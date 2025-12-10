@@ -1,0 +1,161 @@
+# ==============================================================================
+# E-Commerce Fraud Detector - Root .dockerignore
+# ==============================================================================
+# Common exclusions for all Docker builds from project root
+
+# ==============================================================================
+# Version Control
+# ==============================================================================
+.git/
+.gitignore
+.github/
+
+# ==============================================================================
+# Environment & Secrets (injected via env vars in containers)
+# ==============================================================================
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# ==============================================================================
+# Python
+# ==============================================================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.eggs/
+*.egg-info/
+*.egg
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+htmlcov/
+venv/
+.venv/
+env/
+ENV/
+
+# ==============================================================================
+# Node.js
+# ==============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+
+# ==============================================================================
+# Build Outputs (generated in container)
+# ==============================================================================
+dist/
+build/
+*.local
+
+# ==============================================================================
+# IDE & Editors
+# ==============================================================================
+.vscode/
+.idea/
+*.sublime-*
+.history/
+*.swp
+*.swo
+
+# ==============================================================================
+# Testing (not needed in production)
+# ==============================================================================
+tests/
+test_*.py
+*_test.py
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+coverage/
+pytest.ini
+jest.config.*
+vitest.config.*
+
+# ==============================================================================
+# Documentation (not needed in container)
+# ==============================================================================
+*.md
+!README.md
+docs/
+
+# ==============================================================================
+# Docker/K8s configs (not needed inside containers)
+# ==============================================================================
+Dockerfile
+.dockerignore
+docker-compose*.yml
+infra/
+*.yaml
+*.yml
+
+# ==============================================================================
+# Logs & Temporary Files
+# ==============================================================================
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+*.bak
+*.old
+
+# ==============================================================================
+# OS Files
+# ==============================================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==============================================================================
+# CI/CD
+# ==============================================================================
+.gitlab-ci.yml
+Jenkinsfile
+.travis.yml
+
+# ==============================================================================
+# Development Tools
+# ==============================================================================
+Makefile
+makefile
+*.sqlite
+*.db
+catboost_info/
+mlruns/
+reports/
+scripts/
+monitoring/
+
+# ==============================================================================
+# Keep Essential Files
+# ==============================================================================
+# Backend essentials (not excluded):
+# - backend/app.py
+# - backend/dashboard.py
+# - backend/models/*.pkl (trained models)
+# - backend/requirements.txt
+# - backend/gunicorn.conf.py
+# - backend/db/
+# - backend/pipelines/
+# - backend/rules/
+# - backend/utils/
+
+# Frontend essentials (not excluded):
+# - frontend/src/
+# - frontend/public/
+# - frontend/package.json
+# - frontend/vite.config.ts
+# - frontend/index.html

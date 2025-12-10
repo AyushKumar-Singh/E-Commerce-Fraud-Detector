@@ -1,0 +1,83 @@
+# ==============================================================================
+# Frontend .dockerignore
+# ==============================================================================
+
+# Dependencies (will be installed fresh in container)
+node_modules/
+.pnpm-store/
+
+# Build output (will be generated in container)
+dist/
+build/
+
+# Development files
+.git/
+.gitignore
+.vscode/
+.idea/
+*.sublime-*
+.history/
+
+# Environment files (injected at build time)
+.env
+.env.*
+!.env.example
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Tests
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+coverage/
+jest.config.*
+vitest.config.*
+
+# Documentation
+*.md
+docs/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Storybook (if used)
+.storybook/
+storybook-static/
+
+# Cache
+.cache/
+.parcel-cache/
+.turbo/
+
+# ESLint & Prettier configs (not needed in prod)
+.eslintrc*
+.prettierrc*
+eslint.config.*
+
+# Temporary
+tmp/
+temp/
+*.tmp
+*.bak

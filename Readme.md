@@ -1,271 +1,200 @@
-# React + TypeScript + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
 # E-Commerce Fraud Detector
 
-A full‑stack project (React + TypeScript frontend, Node backend) for detecting potential fraud in e‑commerce transactions.
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
+[![React 18](https://img.shields.io/badge/React-18-61DAFB.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg)](https://www.typescriptlang.org/)
+[![CI/CD](https://github.com/AyushKumar-Singh/E-Commerce-Fraud-Detector/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/AyushKumar-Singh/E-Commerce-Fraud-Detector/actions/workflows/ci-cd.yml)
 
-This README provides concise setup, run and test instructions for both frontend and backend on Windows.
+A production-ready fraud detection system with ML-powered transaction and review analysis.
 
----
+## 🚀 Quick Links
 
-## Prerequisites
+- [Quick Start Guide](QUICK_START.md) - Get running in minutes
+- [Deployment Guide](DEPLOYMENT.md) - Deploy to Vercel, Railway, Docker, or Minikube
+- [Testing Guide](TESTING_GUIDE.md) - API and frontend testing
+- [CI/CD Pipelines](.github/workflows/) - GitHub Actions workflows
 
-- Node.js 18+ (or the version your project expects)
-- npm (comes with Node) — or yarn / pnpm if used by the repo
-- Git
-- (Optional) Docker & Docker Compose if the repo includes Docker configs
-- (Optional) Database client (Postgres / MySQL) if a database is required
+## 📋 Architecture
 
-Verify Node/npm:
-- PowerShell / CMD:
-  - node -v
-  - npm -v
+```
+E-Commerce Fraud Detector/
+├── backend/              # Python Flask API
+│   ├── db/               # SQLAlchemy models & schema
+│   ├── models/           # Trained ML models (.pkl)
+│   ├── pipelines/        # Feature engineering
+│   ├── rules/            # Business rule engine
+│   ├── utils/            # Auth, logging, XAI
+│   └── app.py            # Main Flask app
+│
+├── frontend/             # React + TypeScript (Vite)
+│   └── src/
+│       ├── pages/        # Dashboard, Transactions, Reviews
+│       ├── components/   # Reusable UI components
+│       └── services/     # API client
+│
+├── infra/                # Infrastructure configs
+│   ├── compose/          # Docker Compose files
+│   ├── docker/           # Nginx config
+│   └── k8s/              # Kubernetes manifests
+│
+├── data/                 # Data files
+├── monitoring/           # Prometheus config
+├── scripts/              # Utility scripts
+└── logs/                 # Application logs
+```
 
----
+## ⚡ Quick Start
 
-## Repository layout (typical)
-Adjust paths below if your repo differs.
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- Docker & Docker Compose (optional)
+- PostgreSQL (or use Docker)
 
-- /frontend — React + Vite app
-- /backend — Node (Express / Nest / Fastify) API
-- .env.example — example environment file
-- .gitignore — secrets and generated files ignored
+### Development Setup
 
----
+**Backend:**
+```powershell
+# Create virtual environment
+python -m venv venv
+.\venv\Scripts\Activate.ps1
 
-## Initial setup (one-time)
+# Install dependencies
+pip install -r backend/requirements.txt
 
-1. Clone:
-   - git clone <repo-url>
-   - cd "E-Commerce Fraud Detector"
+# Run server
+python backend/app.py
+# API runs at http://localhost:8000
+```
 
-2. Copy env examples:
-   - PowerShell:
-     - cp .env.example .env
-   - CMD:
-     - copy .env.example .env
-   - Fill required values in `.env`.
+**Frontend:**
+```powershell
+cd frontend
+npm install
+npm run dev
+# UI runs at http://localhost:3000
+```
 
+### Docker (Recommended)
+```powershell
+# From project root
+docker-compose -f infra/compose/docker-compose.yml up -d
 
-3. Install root dependencies (if monorepo scripts exist) or install per side below.
+# Services:
+# - API: http://localhost:8000
+# - Frontend: http://localhost:3000
+# - PostgreSQL: localhost:5432
+# - Adminer: http://localhost:8080
+```
 
----
+## 🔌 API Endpoints
 
-## Frontend
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/auth/token` | POST | Get API token |
+| `/predict/review` | POST | Detect fake reviews |
+| `/predict/transaction` | POST | Detect fraud transactions |
+| `/predict/transaction-kaggle` | POST | CatBoost fraud detection |
+| `/dashboard/*` | GET | Dashboard data |
 
-From repo root:
+## 🔄 Data Flow
 
-- Enter frontend:
-  - cd frontend
+```mermaid
+graph LR
+    A[Frontend] --> B[API Gateway]
+    B --> C[Feature Engineering]
+    C --> D[ML Models]
+    D --> E[Business Rules]
+    E --> F[Decision Engine]
+    F --> G[PostgreSQL]
+    F --> H[Response]
+```
 
-- Install:
-  - npm install
-  - Or: yarn / pnpm install
+1. **Request** → Frontend sends transaction/review data
+2. **Feature Engineering** → `pipelines/` extracts ML features
+3. **ML Prediction** → Trained models score fraud probability
+4. **Business Rules** → `rules/` applies domain-specific logic
+5. **Decision** → Combined score + explainability returned
+6. **Storage** → Results saved to PostgreSQL
 
-- Run dev server (Vite):
-  - npm run dev
-  - The terminal will show the local URL (usually http://localhost:5173)
+## ⚙️ Environment Variables
 
-- Build for production:
-  - npm run build
-  - Preview production build:
-    - npm run preview
+Copy `.env.production.example` to `.env` and configure:
 
-- Tests & lint (if configured):
-  - npm test
-  - npm run lint
-  - npm run format
+```env
+# Database
+DATABASE_URL=postgresql+psycopg2://user:pass@localhost:5432/frauddb
 
-Notes:
-- If using a specific Node version, consider using nvm or .nvmrc.
+# Security (CHANGE THESE!)
+JWT_SECRET=your-32-char-secret
+ADMIN_SECRET=your-32-char-secret
+API_TOKEN=your-32-char-secret
 
----
+# Model Thresholds
+REVIEW_THR=0.65
+TX_THR=0.50
+```
 
-## Backend
+## 🧪 Testing
 
-From repo root:
+```powershell
+# Backend tests
+cd backend
+python -m pytest tests/ -v
 
-- Enter backend:
-  - cd backend
+# Frontend tests
+cd frontend
+npm test
+```
 
-- Install:
-  - npm install
+## 📦 Deployment
 
-- Environment:
-  - Ensure `.env` contains API_PORT, DATABASE_URL, and other keys required by backend.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete guides:
+- **Vercel** - Frontend hosting
+- **Railway** - Full-stack with managed PostgreSQL
+- **Docker** - Self-hosted deployment
+- **Minikube** - Local Kubernetes testing
 
-- Run in development:
-  - npm run dev
-    - (typically uses nodemon / ts-node-dev to reload on changes)
+## 🤖 ML Models
 
-- Run production:
-  - npm run build
-  - npm start
+| Model | Type | Purpose |
+|-------|------|---------|
+| Review Model | RandomForest | Fake review detection |
+| Transaction Model | IsolationForest | Anomaly-based fraud detection |
+| CatBoost Model | CatBoost | Kaggle Credit Card Fraud (99.3% accuracy) |
 
-- Database migrations (if using Prisma / TypeORM / Sequelize):
-  - Prisma example:
-    - npx prisma generate
-    - npx prisma migrate dev --name init
-  - TypeORM / Sequelize: run the project-specific migration command.
+## 📄 License
 
-- Tests & lint:
-  - npm test
-  - npm run lint
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
+```
+MIT License
 
-## Running frontend + backend together
+Copyright (c) 2025 E-Commerce Fraud Detector
 
-Option A — manually:
-- Open two terminals:
-  - Terminal 1 (frontend):
-    - cd frontend
-    - npm run dev
-  - Terminal 2 (backend):
-    - cd backend
-    - npm run dev
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Option B — docker / docker-compose:
-- If docker-compose.yml exists:
-  - docker compose up --build
-  - (Stop with docker compose down)
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
----
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
-## Environment files
+## 🙏 Acknowledgments
 
-Add private keys & secrets only to `.env` (do not commit). Your .gitignore already ignores `.env*` while allowing `.env.example`. Example `.env.example`:
-
-NODE_ENV=development
-PORT=4000
-API_URL=http://localhost:4000
-FRONTEND_PORT=5173
-DATABASE_URL=postgresql://user:pass@localhost:5432/dbname
-JWT_SECRET=replace_me
-# Add any other required variables here
-
-Copy `.env.example` -> `.env` and fill values.
-
----
-
-## Security / Secrets
-
-- Do not commit `.env` or any secret files.
-- .gitignore is configured to hide common secret files (keys, creds, service accounts).
-- If sensitive data was accidentally committed, rotate the secret and remove it from git history (use git filter-repo or BFG).
-
----
-
-## Common troubleshooting
-
-- "Port already in use": change port in `.env` or kill the process.
-- Missing scripts: check package.json in frontend/backend for available scripts.
-- DB connection errors: ensure database is running and DATABASE_URL is correct.
-- If packages fail to install: remove node_modules and lock files, then reinstall:
-  - rm -rf node_modules
-  - npm install
-
-(Windows CMD / PowerShell: use rd /s /q node_modules)
-
----
-
-## Tests, linting & formatting
-
-- Run tests:
-  - cd frontend || cd backend
-  - npm test
-
-- Lint:
-  - npm run lint
-
-- Auto-format:
-  - npm run format
-
-Adjust commands to match scripts in each package.json.
-
----
-
-## Contributing
-
-1. Create a feature branch
-2. Run lint & tests locally
-3. Open a pull request with a clear description
-
----
-
-## If you want, I can:
-- Inspect specific package.json scripts and update this README with exact commands.
-- Add a sample .env.example based on backend/frontend config.
-- Add docker-compose example if you use containers.
+- [Kaggle Credit Card Fraud Dataset](https://www.kaggle.com/mlg-ulb/creditcardfraud)
+- [CatBoost](https://catboost.ai/) for high-performance ML
+- [React Query](https://tanstack.com/query) for data fetching

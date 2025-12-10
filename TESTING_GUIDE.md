@@ -1,265 +1,194 @@
 # Testing Guide - E-Commerce Fraud Detector
 
-## ✅ All Systems Running
+Comprehensive guide for testing the fraud detection system.
 
-### Services Status
-- ✅ **Backend API**: Running on http://localhost:8000
-- ✅ **Frontend**: Running on http://localhost:3002
-- ✅ **Database**: SQLite (auto-created)
-- ✅ **Models**: Loaded successfully
+## Quick Health Check
 
-## 🧪 Testing Checklist
-
-### 1. Health Check Tests
-
-#### Backend Health
 ```powershell
-# Test backend is running
-curl http://localhost:8000/health
+# Backend health
+Invoke-RestMethod http://localhost:8000/health
 
-# Expected output:
-# {
-#   "status": "healthy",
-#   "models_loaded": {
-#     "review_model": true,
-#     "tx_model": true
-#   },
-#   "database": "connected"
-# }
+# Expected:
+# status: healthy
+# models_loaded: review_model, tx_model, catboost_model
+# database: connected
 ```
 
-### 2. Authentication Tests
+---
 
-#### Get API Token
+## API Testing
+
+### Prerequisites
+
+Set up authentication:
 ```powershell
-# Using the admin secret from .env
-$body = @{secret="c7883e87ab7e0401ac908fa1f505af3054c763243519e47a579e31c403a151cd"} | ConvertTo-Json
-Invoke-RestMethod -Uri "http://localhost:8000/auth/token" -Method POST -ContentType "application/json" -Body $body
-
-# Expected: JWT token returned
-# Save the token for use in subsequent requests
-```
-
-### 3. Frontend UI Tests
-
-#### Login Page
-1. Open http://localhost:3002 in your browser
-2. You should be redirected to /login
-3. Enter the admin secret: `c7883e87ab7e0401ac908fa1f505af3054c763243519e47a579e31c403a151cd`
-4. Click "Sign In"
-5. Should redirect to dashboard
-
-#### Dashboard Page
-1. After login, verify you see:
-   - Stats cards (Today/Week/Month)
-   - Trend charts
-   - Top offenders
-   - Recent flags
-
-#### Predict Review Page
-1. Navigate to /predict
-2. Click on "Review" tab
-3. Fill in the form:
-   - User ID: 123
-   - Product ID: PROD-456
-   - Review Text: "This is an amazing product! Best purchase ever! Highly recommend to everyone! 5 stars!!!"
-   - Rating: 5
-4. Click "Analyze Review"
-5. Verify prediction result is displayed
-
-#### Predict Transaction Page
-1. On /predict page, click "Transaction" tab
-2. Fill in the form:
-   - User ID: 123
-   - Amount: 50000
-   - Currency: INR
-   - Channel: web
-3. Click "Analyze Transaction"
-4. Verify fraud score is displayed
-
-### 4. API Endpoint Tests
-
-#### Review Prediction
-```powershell
-# Get token first (save to $token variable)
 $headers = @{
     "Content-Type" = "application/json"
-    "X-API-Key" = $token
+    "X-API-Key" = "vUfIt9RDa2BLiYEcmwSp5VoCkNlQMgbT"
 }
-
-$reviewBody = @{
-    user_id = 123
-    product_id = "PROD-456"
-    review_text = "Amazing product! Best ever! Highly recommend!"
-    rating = 5
-} | ConvertTo-Json
-
-Invoke-RestMethod -Uri "http://localhost:8000/predict/review" -Method POST -Headers $headers -Body $reviewBody
 ```
 
-#### Transaction Prediction
+### Review Prediction
+
 ```powershell
-$txBody = @{
-    user_id = 123
-    amount = 5000
-    currency = "INR"
-    channel = "web"
-} | ConvertTo-Json
+# Test genuine review
+$body = '{"user_id": 1001, "product_id": "PROD-001", "review_text": "Good product, meets expectations. Delivery was on time.", "rating": 4}'
+Invoke-RestMethod -Uri "http://localhost:8000/predict/review" -Method Post -Headers $headers -Body $body
 
-Invoke-RestMethod -Uri "http://localhost:8000/predict/transaction" -Method POST -Headers $headers -Body $txBody
+# Test suspicious review (should flag)
+$body = '{"user_id": 1002, "product_id": "PROD-002", "review_text": "perfect", "rating": 5}'
+Invoke-RestMethod -Uri "http://localhost:8000/predict/review" -Method Post -Headers $headers -Body $body
 ```
 
-#### Dashboard Stats
+### Transaction Prediction
+
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:8000/dashboard/api/stats" -Method GET -Headers $headers
+# Normal transaction
+$body = '{"user_id": 1001, "amount": 1500, "currency": "INR", "channel": "web"}'
+Invoke-RestMethod -Uri "http://localhost:8000/predict/transaction" -Method Post -Headers $headers -Body $body
+
+# High-value transaction (should flag)
+$body = '{"user_id": 1001, "amount": 50000, "currency": "INR", "channel": "web"}'
+Invoke-RestMethod -Uri "http://localhost:8000/predict/transaction" -Method Post -Headers $headers -Body $body
 ```
 
-### 5. Test Data Scenarios
+### Dashboard Endpoints
 
-#### Suspicious Review (Should flag as fake)
-```json
-{
-  "user_id": 999,
-  "product_id": "PROD-123",
-  "review_text": "AMAZING!!! BEST PRODUCT EVER!!! BUY NOW!!! 100% RECOMMENDED!!! FIVE STARS!!!!!",
-  "rating": 5
-}
-```
-
-#### Normal Review (Should be genuine)
-```json
-{
-  "user_id": 100,
-  "product_id": "PROD-456",
-  "review_text": "Good product, meets my expectations. Delivery was on time. Would buy again.",
-  "rating": 4
-}
-```
-
-#### High-Value Transaction (Should flag)
-```json
-{
-  "user_id": 1,
-  "amount": 100000,
-  "currency": "INR",
-  "channel": "api"
-}
-```
-
-#### Normal Transaction
-```json
-{
-  "user_id": 50,
-  "amount": 1500,
-  "currency": "INR",
-  "channel": "web"
-}
-```
-
-## 🔍 Error Monitoring
-
-### Backend Logs
-Monitor the terminal where backend is running for any errors:
-- Database connection issues
-- Model prediction errors
-- API request failures
-
-### Frontend Console
-Open browser DevTools (F12) and check:
-- Console tab for JavaScript errors
-- Network tab for failed API calls
-- Ensure CORS is working (no CORS errors)
-
-## 📊 Performance Tests
-
-### Load Testing (Optional)
 ```powershell
-# Install Artillery if needed
-npm install -g artillery
+# Get stats
+Invoke-RestMethod -Uri "http://localhost:8000/dashboard/api/stats" -Headers $headers
 
-# Run load test
-artillery quick --count 10 --num 100 http://localhost:8000/health
+# Get trends
+Invoke-RestMethod -Uri "http://localhost:8000/dashboard/api/trends?days=30" -Headers $headers
+
+# Get all reviews
+Invoke-RestMethod -Uri "http://localhost:8000/dashboard/api/all-reviews" -Headers $headers
 ```
 
-## ✅ All Tests Passed Criteria
+---
 
-- ✅ Backend responds to /health endpoint
-- ✅ Authentication works (token generation)
-- ✅ Frontend loads without errors
-- ✅ Login redirects to dashboard
-- ✅ Review prediction works
-- ✅ Transaction prediction works
-- ✅ Dashboard displays data
-- ✅ No CORS errors
-- ✅ Models load successfully
+## Frontend Testing
 
-## 🐛 Common Issues & Fixes
+### Access Points
+| Environment | URL |
+|-------------|-----|
+| Development | http://localhost:3000 or http://localhost:5173 |
+| Docker | http://localhost:3000 |
 
-### Issue: "Connection refused" on localhost:8000
-**Fix**: Ensure backend is running. Check terminal for errors.
+### Test Checklist
 
-### Issue: "401 Unauthorized" errors
-**Fix**: Get a fresh token using /auth/token endpoint
+- [ ] Login page loads
+- [ ] Authentication with API token works
+- [ ] Dashboard displays stats
+- [ ] Review Analysis page works
+- [ ] Add Review form submits correctly
+- [ ] Transaction Analysis page works  
+- [ ] Navigation between pages works
 
-### Issue: Frontend shows white screen
-**Fix**: 
-1. Check browser console for errors
-2. Verify all files in frontend-react/src exist
-3. Restart dev server: `npm run dev`
+---
 
-### Issue: "Module not found" errors
-**Fix**: 
-1. Stop dev server (Ctrl+C)
-2. Run `npm install`
-3. Restart: `npm run dev`
+## Docker Testing
 
-### Issue: CORS errors
-**Fix**: Backend CORS is configured for localhost:3000-5173. Check your frontend port matches.
-
-## 📝 Test Results Template
-
-```
-Date: _______________
-Tester: _______________
-
-Backend Tests:
-[ ] Health check
-[ ] Authentication
-[ ] Review prediction
-[ ] Transaction prediction
-[ ] Dashboard stats
-
-Frontend Tests:
-[ ] Login page loads
-[ ] Authentication works
-[ ] Dashboard displays
-[ ] Review form works
-[ ] Transaction form works
-[ ] Navigation works
-
-Issues Found:
-_______________________
-_______________________
-
-Notes:
-_______________________
-_______________________
+### Start Services
+```powershell
+docker-compose -f infra/compose/docker-compose.yml up -d
+docker-compose -f infra/compose/docker-compose.yml ps
 ```
 
-## 🎯 Next Steps After Testing
+### Test Containerized API
+```powershell
+# Wait for services to start
+Start-Sleep -Seconds 30
 
-1. Fix any identified issues
-2. Add more test data
-3. Configure production database (PostgreSQL)
-4. Deploy to cloud (AWS/GCP)
-5. Set up monitoring (Grafana)
-6. Enable SSL/HTTPS
-7. Configure production secrets
+# Health check
+Invoke-RestMethod http://localhost:8000/health
+```
 
-## Support
+### Check Logs
+```powershell
+docker-compose -f infra/compose/docker-compose.yml logs api
+docker-compose -f infra/compose/docker-compose.yml logs frontend
+```
 
-For issues, check:
-- QUICK_START.md for setup instructions
-- README.md for detailed documentation
-- Backend logs for API errors
-- Browser console for frontend errors
+---
+
+## Kubernetes Testing (Minikube)
+
+### Prerequisites
+```powershell
+minikube start
+minikube addons enable ingress
+```
+
+### Deploy & Test
+```powershell
+# Build images in Minikube
+minikube docker-env | Invoke-Expression
+docker build -t fraud-detector-api:latest ./backend
+docker build -t fraud-detector-ui:latest ./frontend
+
+# Deploy
+kubectl apply -f infra/k8s/
+
+# Check pods
+kubectl get pods -n fraud-detector
+
+# Port forward for testing
+kubectl port-forward svc/backend -n fraud-detector 8000:8000
+```
+
+---
+
+## Test Data Scenarios
+
+### Reviews That Should Be Flagged
+| Review | Expected Score |
+|--------|---------------|
+| "perfect" (1 word, 5 stars) | ~1.0 (FAKE) |
+| "AMAZING!!! BEST EVER!!!" (all caps) | >0.05 |
+| Empty or very short text | >0.5 |
+
+### Reviews That Should Pass
+| Review | Expected Score |
+|--------|---------------|
+| Detailed 3-4 sentence review | ~0.0 (GENUINE) |
+| Balanced pros/cons | ~0.0 |
+| Moderate rating (3-4 stars) | Low score |
+
+### Transactions That Should Be Flagged
+| Amount | User Type | Expected |
+|--------|-----------|----------|
+| >₹20,000 | New user | FLAG |
+| >₹50,000 | Any user | FLAG |
+| Rapid multiple transactions | Any | FLAG |
+
+---
+
+## Troubleshooting
+
+| Error | Solution |
+|-------|----------|
+| `ERR_CONNECTION_REFUSED` | Start backend: `python backend/app.py` |
+| `401 Unauthorized` | Check API token in headers |
+| `500 Internal Server Error` | Check backend logs for details |
+| CORS errors | Verify frontend URL in backend CORS config |
+| Docker build fails | Check .dockerignore, run `docker system prune` |
+
+---
+
+## Performance Benchmarks
+
+| Metric | Expected |
+|--------|----------|
+| Health check | <50ms |
+| Review prediction | <200ms |
+| Transaction prediction | <200ms |
+| Model load time | 2-5 seconds |
+
+---
+
+## Related Documentation
+
+- [QUICK_START.md](QUICK_START.md) - Get running quickly
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Deploy to production
+- [Readme.md](Readme.md) - Project overview

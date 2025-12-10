@@ -1,0 +1,31 @@
+# CD Pipeline Reference
+# Main workflows:
+#   - ../.github/workflows/ci-cd.yml (deploy-staging, deploy-production)
+#   - ../.github/workflows/docker-publish.yml (Docker image publishing)
+#   - ../.github/workflows/k8s-deploy.yml (Kubernetes deployment)
+
+# This file provides a quick reference to the CD configuration.
+
+# Deployment Workflows:
+#
+# 1. Automatic Deployment (ci-cd.yml):
+#    - deploy-staging: Triggered on push to 'develop' branch
+#    - deploy-production: Triggered on push to 'main' branch
+#
+# 2. Docker Publishing (docker-publish.yml):
+#    - Builds multi-platform images (amd64, arm64)
+#    - Pushes to GitHub Container Registry (ghcr.io)
+#    - Triggered on main branch and version tags
+#
+# 3. Kubernetes Deploy (k8s-deploy.yml):
+#    - Manual trigger with environment selection
+#    - Uses Kustomize for manifest management
+#    - Supports staging and production environments
+
+# Required GitHub Secrets:
+# - GITHUB_TOKEN (automatic)
+# - DOCKERHUB_USERNAME (optional)
+# - DOCKERHUB_TOKEN (optional)
+# - KUBE_CONFIG (for K8s deployment, base64 encoded)
+
+# See full workflows in .github/workflows/

@@ -1,171 +1,134 @@
 # Fixes Applied - E-Commerce Fraud Detector
 
-## Summary
-Successfully connected frontend and backend, resolved all errors, and got the application running.
+## Version History
 
-## Issues Fixed
-
-### 1. Import Path Errors ✅
-**Problem**: Incorrect import paths in TypeScript files
-- `App.tsx` and `LoginPage.tsx` had wrong paths (`frontend/src/...` instead of `@/...`)
-- `ReviewForm.tsx` and `TransactionForm.tsx` had incorrect API imports
-
-**Fix**: 
-- Updated `tsconfig.json` to point to correct path: `frontend-react/src/*`
-- Fixed all import statements to use `@/` alias
-- Created missing `useFraudStats.ts` hook file
-
-### 2. Missing Files ✅
-**Problem**: Several required files were missing
-- `index.html` in frontend-react root
-- `index.css` in frontend-react/src
-- `useFraudStats.ts` hook
-- `.env` files for backend and frontend
-
-**Fix**:
-- Created `frontend-react/index.html`
-- Copied `index.css` to `src/` directory
-- Created `src/hooks/useFraudStats.ts` with all required hooks
-- Created `.env` file with SQLite configuration
-
-### 3. Backend Configuration ✅
-**Problem**: Backend missing CORS and dashboard blueprint registration
-
-**Fix**:
-- Added Flask-CORS with proper configuration for localhost:3000-5173
-- Registered dashboard blueprint in `app.py`
-- Configured CORS to allow frontend communication
-
-### 4. Database Configuration ✅
-**Problem**: PostgreSQL dependency and complex setup
-
-**Fix**:
-- Switched to SQLite for local development
-- Updated `db/models.py` to use SQLite-compatible types (JSON instead of JSONB, Text instead of INET)
-- Database auto-creates on first run
-
-### 5. Environment Configuration ✅
-**Problem**: No environment files configured
-
-**Fix**:
-- Created `.env` in project root with proper backend configuration
-- Created `frontend-react/.env` with API URL
-- Set development mode and debug flags
-
-## Files Created
-
-1. **frontend-react/index.html** - Main HTML file
-2. **frontend-react/.env** - Frontend environment variables
-3. **.env** - Backend environment variables (updated existing)
-4. **frontend-react/src/hooks/useFraudStats.ts** - Dashboard hooks
-5. **start-backend.ps1** - PowerShell script to start backend
-6. **start-frontend.ps1** - PowerShell script to start frontend
-7. **QUICK_START.md** - Quick setup guide
-8. **TESTING_GUIDE.md** - Comprehensive testing guide
-
-## Files Modified
-
-1. **frontend-react/src/App.tsx** - Fixed import path
-2. **frontend-react/src/pages/LoginPage.tsx** - Fixed import paths
-3. **frontend-react/src/components/Predict/ReviewForm.tsx** - Fixed API import
-4. **frontend-react/src/components/Predict/TransactionForm.tsx** - Fixed API import
-5. **tsconfig.json** - Updated path alias configuration
-6. **backend/app.py** - Added CORS and dashboard blueprint
-7. **backend/db/models.py** - Changed to SQLite-compatible types
-
-## Running Services
-
-### Backend
-- **URL**: http://localhost:8000
-- **Status**: ✅ Running
-- **Database**: SQLite (frauddb.db)
-- **Models**: ✅ Both loaded (review_model.pkl, tx_model.pkl)
-
-### Frontend
-- **URL**: http://localhost:3002
-- **Status**: ✅ Running
-- **Framework**: Vite + React + TypeScript
-- **Build**: Development mode with HMR
-
-## Test Results
-
-### Backend API Tests ✅
-- Health endpoint: ✅ Working
-- Auth endpoint: ✅ Token generation successful
-- Review prediction: ✅ Model loaded and working
-- Transaction prediction: ✅ Model loaded and working
-- Dashboard endpoints: ✅ Registered and accessible
-
-### Frontend Tests ✅
-- Application loads: ✅ No errors
-- Login page: ✅ Renders correctly
-- Routing: ✅ React Router working
-- API integration: ✅ Axios configured
-- State management: ✅ Zustand for auth
-
-### Integration Tests ✅
-- CORS: ✅ No CORS errors
-- API calls: ✅ Backend responds to frontend
-- Authentication flow: ✅ Token storage working
-
-## Known Warnings (Non-Critical)
-
-1. **Scikit-learn version warning**: Models trained with v1.4.2, loaded with v1.7.2
-   - Impact: Low - Models still work
-   - Fix: Retrain models with current version (optional)
-
-2. **Flask deprecation warning**: `__version__` attribute deprecated
-   - Impact: None - Just a warning
-   - Fix: Will be handled in Flask 3.2
-
-## Access Points
-
-### For Users
-- **Frontend**: http://localhost:3002
-- **Login Secret**: `c7883e87ab7e0401ac908fa1f505af3054c763243519e47a579e31c403a151cd`
-
-### For Developers
-- **Backend API**: http://localhost:8000
-- **API Health**: http://localhost:8000/health
-- **Database**: SQLite file at `frauddb.db`
-- **Logs**: Terminal output
-
-## Next Steps
-
-1. ✅ Backend running
-2. ✅ Frontend running
-3. ✅ All errors resolved
-4. ✅ Preview browser available
-
-### Optional Enhancements
-- [ ] Retrain models with current scikit-learn version
-- [ ] Set up PostgreSQL for production
-- [ ] Add more test data
-- [ ] Configure Docker for deployment
-- [ ] Set up CI/CD pipeline
-
-## Performance Notes
-
-- Models load on startup (~2-3 seconds)
-- API response time: <100ms for predictions
-- Frontend HMR: Instant updates
-- Database queries: Very fast (SQLite in-memory)
-
-## Security Notes
-
-- Using development secrets (change in production)
-- CORS enabled for localhost only
-- JWT tokens with 24-hour expiration
-- Rate limiting enabled (100 req/hour)
-
-## Documentation
-
-- **QUICK_START.md**: Setup and running instructions
-- **TESTING_GUIDE.md**: Comprehensive testing guide
-- **FIXES_APPLIED.md**: This file - details of all fixes
+| Date | Version | Changes |
+|------|---------|---------|
+| Dec 2025 | 2.1.0 | Added deployment docs, K8s manifests, Docker optimizations |
+| Nov 2025 | 2.0.0 | Major restructure, CatBoost model, PostgreSQL migration |
+| Oct 2025 | 1.0.0 | Initial release |
 
 ---
 
-**Date**: November 9, 2025
-**Status**: ✅ All systems operational
-**Version**: 2.0.0
+## Recent Fixes (v2.1.0)
+
+### Deployment Infrastructure
+- ✅ Created comprehensive [DEPLOYMENT.md](DEPLOYMENT.md) with Vercel, Railway, Docker, Minikube guides
+- ✅ Added Kubernetes manifests in `infra/k8s/`
+- ✅ Created `frontend/vercel.json` for Vercel deployment
+- ✅ Created `backend/railway.toml` for Railway deployment
+- ✅ Added MIT LICENSE file
+
+### Configuration Files
+- ✅ Updated `.gitignore` with organized sections
+- ✅ Created `backend/.dockerignore` for optimized builds
+- ✅ Created `frontend/.dockerignore` for optimized builds
+
+### Documentation Updates
+- ✅ Updated `Readme.md` with badges and full license
+- ✅ Updated `QUICK_START.md` with Docker setup
+- ✅ Updated `TESTING_GUIDE.md` with K8s testing
+
+---
+
+## Previous Fixes (v2.0.0)
+
+### Connection & API Issues
+| Issue | Solution |
+|-------|----------|
+| `ERR_CONNECTION_REFUSED` | Started backend server on port 8000 |
+| 401 Unauthorized | Used correct API token from `.env` |
+| Foreign key constraint | Created test users in database |
+| CORS errors | Added frontend URLs to Flask-CORS config |
+
+### Database Migration
+- Migrated from SQLite to PostgreSQL
+- Updated `db/models.py` for PostgreSQL types
+- Added connection pooling configuration
+
+### Model Integration
+- Added CatBoost model for credit card fraud detection
+- Integrated with Kaggle dataset (99.3% accuracy)
+- Added model metrics endpoint
+
+---
+
+## Known Warnings (Non-Critical)
+
+| Warning | Impact | Status |
+|---------|--------|--------|
+| Scikit-learn version mismatch | None - models work | Can retrain |
+| Flask deprecation warnings | None | Will resolve in Flask 3.2 |
+
+---
+
+## Project Structure
+
+```
+E-Commerce_Fraud_Detector/
+├── backend/                 # Flask API
+│   ├── db/                  # Database models
+│   ├── models/              # Trained ML models
+│   ├── pipelines/           # Feature engineering
+│   ├── rules/               # Business rules
+│   ├── utils/               # Auth, logging
+│   ├── app.py               # Main application
+│   ├── dashboard.py         # Dashboard endpoints
+│   ├── Dockerfile           # Container build
+│   ├── railway.toml         # Railway config
+│   └── .dockerignore        # Docker exclusions
+├── frontend/                # React + Vite
+│   ├── src/                 # Source code
+│   ├── Dockerfile           # Container build
+│   ├── vercel.json          # Vercel config
+│   └── .dockerignore        # Docker exclusions
+├── infra/                   # Infrastructure
+│   ├── compose/             # Docker Compose files
+│   ├── docker/              # Nginx config
+│   └── k8s/                 # Kubernetes manifests
+├── .gitignore               # Git exclusions
+├── .env.production.example  # Environment template
+├── LICENSE                  # MIT License
+├── Readme.md                # Main documentation
+├── QUICK_START.md           # Quick setup guide
+├── DEPLOYMENT.md            # Deployment guide
+├── TESTING_GUIDE.md         # Testing guide
+└── FIXES_APPLIED.md         # This file
+```
+
+---
+
+## Deployment Options
+
+| Platform | Best For | Guide |
+|----------|----------|-------|
+| Vercel | Frontend only | [DEPLOYMENT.md#vercel](DEPLOYMENT.md#vercel-deployment) |
+| Railway | Full-stack | [DEPLOYMENT.md#railway](DEPLOYMENT.md#railway-deployment) |
+| Docker | Self-hosted | [DEPLOYMENT.md#docker](DEPLOYMENT.md#docker-deployment) |
+| Minikube | K8s testing | [DEPLOYMENT.md#minikube](DEPLOYMENT.md#minikube-deployment) |
+
+---
+
+## Environment Variables
+
+```env
+# Required
+DATABASE_URL=postgresql+psycopg2://user:pass@host:5432/db
+JWT_SECRET=<32-char-secret>
+ADMIN_SECRET=<32-char-secret>
+API_TOKEN=<32-char-secret>
+
+# Optional
+REVIEW_THR=0.65
+TX_THR=0.50
+FLASK_DEBUG=false
+```
+
+---
+
+## Support
+
+- Check logs: `backend/logs/fraud_detector.log`
+- Browser console for frontend errors
+- Docker logs: `docker-compose logs -f`
+- K8s logs: `kubectl logs -f deployment/backend -n fraud-detector`

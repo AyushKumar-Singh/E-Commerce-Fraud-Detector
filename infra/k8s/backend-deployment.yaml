@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: fraud-detector
+  labels:
+    app.kubernetes.io/name: fraud-detector
+    app.kubernetes.io/component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+        app.kubernetes.io/name: fraud-detector
+        app.kubernetes.io/component: backend
+    spec:
+      containers:
+        - name: backend
+          image: fraud-detector-api:latest
+          # For Docker Desktop K8s, use Never to force using local images
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fraud-detector-secrets
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: fraud-detector-secrets
+                  key: JWT_SECRET
+            - name: ADMIN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: fraud-detector-secrets
+                  key: ADMIN_SECRET
+            - name: API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: fraud-detector-secrets
+                  key: API_TOKEN
+            - name: FLASK_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: fraud-detector-config
+                  key: FLASK_ENV
+            - name: REVIEW_THR
+              valueFrom:
+                configMapKeyRef:
+                  name: fraud-detector-config
+                  key: REVIEW_THR
+            - name: TX_THR
+              valueFrom:
+                configMapKeyRef:
+                  name: fraud-detector-config
+                  key: TX_THR
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      # Wait for PostgreSQL to be ready
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;']
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: fraud-detector
+  labels:
+    app.kubernetes.io/name: fraud-detector
+    app.kubernetes.io/component: backend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  selector:
+    app: backend
+
+---
+# Horizontal Pod Autoscaler (optional)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+  namespace: fraud-detector
+  labels:
+    app.kubernetes.io/name: fraud-detector
+    app.kubernetes.io/component: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

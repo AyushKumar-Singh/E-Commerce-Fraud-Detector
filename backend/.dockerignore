@@ -1,0 +1,100 @@
+# ==============================================================================
+# Backend .dockerignore
+# ==============================================================================
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.eggs/
+*.egg-info/
+*.egg
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+.history/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Environment files (will be injected via env vars)
+.env
+.env.*
+
+# Logs (runtime generated)
+logs/
+*.log
+
+# Tests (not needed in production image)
+tests/
+test_*.py
+*_test.py
+conftest.py
+pytest.ini
+
+# Documentation
+*.md
+docs/
+
+# Development files
+*.sqlite
+*.db
+Makefile
+setup.py
+setup.cfg
+pyproject.toml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+.travis.yml
+
+# Kubernetes (not needed in container)
+k8s/
+*.yaml
+*.yml
+!requirements.txt
+!gunicorn.conf.py
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Model training artifacts (keep trained models)
+catboost_info/
+mlruns/
+checkpoints/
+
+# Keep only essential model files
+# models/ is included but training artifacts are excluded

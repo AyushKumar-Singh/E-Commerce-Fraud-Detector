@@ -1,0 +1,17 @@
+# CI Pipeline Reference
+# Main workflow: ../.github/workflows/ci-cd.yml
+
+# This file provides a quick reference to the CI configuration.
+# The actual workflow is located in .github/workflows/ci-cd.yml
+
+# Pipeline Jobs:
+# 1. lint-backend    - Code quality checks (Black, Flake8, Bandit)
+# 2. test-backend    - Python tests with PostgreSQL service
+# 3. lint-frontend   - ESLint and TypeScript checks
+# 4. build-frontend  - Vite production build
+
+# Triggers:
+# - Push to main/develop branches
+# - Pull requests to main
+
+# See full workflow: .github/workflows/ci-cd.yml

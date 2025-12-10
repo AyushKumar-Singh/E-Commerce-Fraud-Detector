@@ -329,3 +329,116 @@ def add_label():
     db.commit()
     
     return jsonify({"success": True, "label_id": label.id})
+
+@dashboard_bp.route('/api/all-reviews')
+@require_token
+def get_all_reviews():
+    """Get all reviews (both genuine and fake) with pagination"""
+    from app import get_db
+    db = get_db()
+    
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 50))
+    filter_type = request.args.get('filter', 'all')  # all, fake, genuine
+    
+    query = db.query(Review).order_by(desc(Review.created_at))
+    
+    if filter_type == 'fake':
+        query = query.filter(Review.is_fake_pred == True)
+    elif filter_type == 'genuine':
+        query = query.filter(Review.is_fake_pred == False)
+    
+    total = query.count()
+    items = query.offset((page - 1) * per_page).limit(per_page).all()
+    
+    return jsonify({
+        "items": [
+            {
+                "id": r.id,
+                "user_id": r.user_id,
+                "product_id": r.product_id,
+                "text": r.review_text,
+                "rating": float(r.rating) if r.rating else 0,
+                "score": float(r.fake_score) if r.fake_score else 0,
+                "is_fake": r.is_fake_pred,
+                "reasons": r.decision_json.get('reasons', []) if r.decision_json else [],
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+                "ip": str(r.ip_address) if r.ip_address else None
+            }
+            for r in items
+        ],
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": (total + per_page - 1) // per_page
+    })
+
+@dashboard_bp.route('/api/all-transactions')
+@require_token
+def get_all_transactions():
+    """Get all transactions (both safe and fraudulent) with pagination"""
+    from app import get_db
+    db = get_db()
+    
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 50))
+    filter_type = request.args.get('filter', 'all')  # all, fraud, safe
+    
+    query = db.query(Transaction).order_by(desc(Transaction.created_at))
+    
+    if filter_type == 'fraud':
+        query = query.filter(Transaction.is_fraud_pred == True)
+    elif filter_type == 'safe':
+        query = query.filter(Transaction.is_fraud_pred == False)
+    
+    total = query.count()
+    items = query.offset((page - 1) * per_page).limit(per_page).all()
+    
+    return jsonify({
+        "items": [
+            {
+                "id": t.id,
+                "user_id": t.user_id,
+                "amount": float(t.amount) if t.amount else 0,
+                "currency": t.currency,
+                "channel": t.channel,
+                "score": float(t.fraud_score) if t.fraud_score else 0,
+                "is_fraud": t.is_fraud_pred,
+                "reasons": t.decision_json.get('reasons', []) if t.decision_json else [],
+                "created_at": t.created_at.isoformat() if t.created_at else None,
+                "ip": str(t.ip_address) if t.ip_address else None
+            }
+            for t in items
+        ],
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": (total + per_page - 1) // per_page
+    })
+
+@dashboard_bp.route('/api/model-metrics')
+@require_token
+def get_model_metrics():
+    """Get CatBoost model metrics for dashboard display"""
+    from app import catboost_metrics, catboost_model
+    
+    if catboost_model is None:
+        return jsonify({
+            "status": "not_loaded",
+            "metrics": None
+        })
+    
+    return jsonify({
+        "status": "loaded",
+        "model_type": "CatBoostClassifier",
+        "dataset": "Kaggle Credit Card Fraud Detection",
+        "metrics": {
+            "accuracy": catboost_metrics.get('accuracy', 0),
+            "precision": catboost_metrics.get('precision', 0),
+            "recall": catboost_metrics.get('recall', 0),
+            "f1_score": catboost_metrics.get('f1_score', 0),
+            "auc_roc": catboost_metrics.get('auc_roc', 0)
+        },
+        "top_features": catboost_metrics.get('top_features', []),
+        "trained_at": catboost_metrics.get('trained_at')
+    })
