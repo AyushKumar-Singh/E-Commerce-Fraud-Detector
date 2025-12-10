@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # E-Commerce Fraud Detector
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -7,9 +8,158 @@
 [![CI/CD](https://github.com/AyushKumar-Singh/E-Commerce-Fraud-Detector/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/AyushKumar-Singh/E-Commerce-Fraud-Detector/actions/workflows/ci-cd.yml)
 
 A production-ready fraud detection system with ML-powered transaction and review analysis.
+=======
+# 🚨 E-Commerce Fraud Detector  
+### **AI-Powered Fraud & Fake Review Detection System**
+
+A full-stack, production-ready fraud detection platform combining **NLP**, **anomaly detection**, **behavioral analytics**, and a secure **Flask + PostgreSQL backend**.  
+Designed to help e-commerce platforms detect and prevent fraudulent activities in real time.
+
+---
+
+## ⭐ Overview  
+The **E-Commerce Fraud Detector** is a dual-module AI system built to identify:
+
+- Fraudulent or suspicious e-commerce transactions  
+- Fake, manipulated, or bot-generated product reviews  
+- Abnormal behavioral patterns such as velocity spikes or device/IP anomalies  
+
+The project integrates **ML models**, **real-time APIs**, **security layers**, and **scalable deployment** using Docker.
+
+---
+
+## 🎯 Objectives  
+- Detect fake reviews using NLP-based sentiment and authenticity scoring  
+- Identify abnormal transactions using Isolation Forest  
+- Analyze user patterns, IP/device fingerprints, and spending behavior  
+- Provide secure, real-time fraud prediction via Flask API  
+- Create explainable fraud insights for business decision-making  
+- Deploy as a scalable microservice architecture using Docker  
+
+---
+
+## 🔥 Unique Features
+
+### 🧠 **Dual AI Modules**
+#### **1. Fake Review Detector**
+- NLP preprocessing (tokenization, stopwords, lemmatization)  
+- Sentiment analysis  
+- Logistic Regression classifier  
+- Text authenticity heuristics  
+
+#### **2. Transaction Fraud Detector**
+- Isolation Forest anomaly detection  
+- Statistical feature extraction  
+- Velocity checks & behavioral flags  
+- IP/device fingerprint consistency  
+
+---
+
+### 🛡️ Security & Reliability
+- JWT-based authentication  
+- Hybrid AI + rule-based verification  
+- Device/IP fingerprinting  
+- Confidence scores via XAI  
+- Rate limiting & request validation  
+
+---
+
+### 📊 Behavioral Analytics
+- Spending spike detection  
+- Review frequency patterns  
+- User trust scoring  
+- Admin-level fraud insights dashboard (optional React app)
+
+---
+
+## ⚠️ Risks & Mitigation
+
+| Risk Type | Description | Mitigation |
+|----------|-------------|------------|
+| False Positives | Legit users mistakenly flagged | Threshold tuning, XAI scoring |
+| Evasion Attempts | Fraudsters modify patterns | Hybrid rules, pattern randomization |
+| Data Drift | Behavior changes over time | Retraining pipelines |
+| Automated Bots | Manipulated reviews | NLP classifiers + spam detection |
+| Misinformation | Fake textual patterns | Review authenticity features |
+
+---
+
+## 🏗️ Tech Stack
+
+### **Backend**
+- Python  
+- Flask  
+- scikit-learn  
+- NLTK  
+- SQLAlchemy  
+
+### **Database**
+- PostgreSQL  
+
+### **Deployment**
+- Docker / Docker Compose  
+- REST API endpoints  
+- Token authentication  
+
+### **Frontend (Optional Dashboard)**
+- React  
+- TypeScript  
+- Vite  
+- Tailwind CSS  
+- Fraud insights data visualization  
+
+---
+
+## 🧠 Machine Learning Models
+
+| Module | Model | Purpose |
+|--------|--------|---------|
+| Fake Review Detector | Logistic Regression | Detect fake/manipulated reviews |
+| Fraud Transaction Detector | Isolation Forest | Identify abnormal spending patterns |
+
+---
+
+## 📊 Key Analytical Features
+- Sentiment scoring  
+- Review authenticity heuristics  
+- Transaction velocity & spikes  
+- User trust score  
+- Device/IP risk scoring  
+- Multi-metric fraud score  
+
+---
+
+## 🚀 Installation & Setup
+
+### **Clone the repository**
+```bash
+git clone https://github.com/yourusername/E-Commerce-Fraud-Detector.git
+cd E-Commerce-Fraud-Detector
+```
+
+---
+
+## 🔧 Backend Setup (Flask API)
+```bash
+cd backend
+pip install -r requirements.txt
+```
+
+Create `.env`:
+```
+DATABASE_URL=postgresql://user:password@localhost:5432/frauddb
+SECRET_KEY=your_secret_key
+```
+
+Run development server:
+```bash
+python app.py
+```
+>>>>>>> 6aa39faa21e892b26da17db0e90da00c895330a3
 
 ## 🚀 Quick Links
 
+<<<<<<< HEAD
 - [Quick Start Guide](QUICK_START.md) - Get running in minutes
 - [Deployment Guide](DEPLOYMENT.md) - Deploy to Vercel, Railway, Docker, or Minikube
 - [Testing Guide](TESTING_GUIDE.md) - API and frontend testing
@@ -42,10 +192,19 @@ E-Commerce Fraud Detector/
 ├── monitoring/           # Prometheus config
 ├── scripts/              # Utility scripts
 └── logs/                 # Application logs
+=======
+## 🎨 Frontend Setup (Optional React Dashboard)
+
+```bash
+cd frontend
+npm install
+npm run dev
+>>>>>>> 6aa39faa21e892b26da17db0e90da00c895330a3
 ```
 
 ## ⚡ Quick Start
 
+<<<<<<< HEAD
 ### Prerequisites
 - Python 3.10+
 - Node.js 18+
@@ -53,6 +212,18 @@ E-Commerce Fraud Detector/
 - PostgreSQL (or use Docker)
 
 ### Development Setup
+=======
+## 🐳 Docker Deployment
+
+```bash
+docker compose up --build
+```
+
+Stop:
+```bash
+docker compose down
+```
+>>>>>>> 6aa39faa21e892b26da17db0e90da00c895330a3
 
 **Backend:**
 ```powershell
@@ -60,6 +231,7 @@ E-Commerce Fraud Detector/
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 
+<<<<<<< HEAD
 # Install dependencies
 pip install -r backend/requirements.txt
 
@@ -86,10 +258,32 @@ docker-compose -f infra/compose/docker-compose.yml up -d
 # - Frontend: http://localhost:3000
 # - PostgreSQL: localhost:5432
 # - Adminer: http://localhost:8080
+=======
+## 📡 API Endpoints
+
+### **POST /predict/review**
+Input:
+```json
+{
+  "review_text": "The product was amazing!"
+}
+```
+
+### **POST /predict/transaction**
+Input:
+```json
+{
+  "amount": 2500,
+  "ip": "192.168.0.12",
+  "device": "mobile",
+  "frequency": 12
+}
+>>>>>>> 6aa39faa21e892b26da17db0e90da00c895330a3
 ```
 
 ## 🔌 API Endpoints
 
+<<<<<<< HEAD
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/health` | GET | Health check |
@@ -131,12 +325,20 @@ DATABASE_URL=postgresql+psycopg2://user:pass@localhost:5432/frauddb
 JWT_SECRET=your-32-char-secret
 ADMIN_SECRET=your-32-char-secret
 API_TOKEN=your-32-char-secret
+=======
+## 🧪 Testing
+
+```bash
+pytest
+```
+>>>>>>> 6aa39faa21e892b26da17db0e90da00c895330a3
 
 # Model Thresholds
 REVIEW_THR=0.65
 TX_THR=0.50
 ```
 
+<<<<<<< HEAD
 ## 🧪 Testing
 
 ```powershell
@@ -168,10 +370,20 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for complete guides:
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+=======
+## 🧭 Future Enhancements
+- BERT/LSTM for more accurate review authenticity detection  
+- Blockchain verification for transaction integrity  
+- Advanced fraud dashboard with alerts  
+- SaaS multi-tenant architecture  
+- Online learning pipeline for continuous training  
+- Image-based fake product detection  
+>>>>>>> 6aa39faa21e892b26da17db0e90da00c895330a3
 
 ```
 MIT License
 
+<<<<<<< HEAD
 Copyright (c) 2025 E-Commerce Fraud Detector
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -183,6 +395,10 @@ furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
+=======
+## 🤝 Contributing  
+Pull requests are welcome — ensure that tests pass and code is formatted properly.
+>>>>>>> 6aa39faa21e892b26da17db0e90da00c895330a3
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -193,8 +409,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+<<<<<<< HEAD
 ## 🙏 Acknowledgments
 
 - [Kaggle Credit Card Fraud Dataset](https://www.kaggle.com/mlg-ulb/creditcardfraud)
 - [CatBoost](https://catboost.ai/) for high-performance ML
 - [React Query](https://tanstack.com/query) for data fetching
+=======
+## 👤 Author  
+**Ayush Kumar Singh**  
+AI Systems Architect & LLM Infrastructure Engineer  
+LinkedIn: ayush-kumar-singh  
+GitHub: AyushKumar-Singh
+
+>>>>>>> 6aa39faa21e892b26da17db0e90da00c895330a3
