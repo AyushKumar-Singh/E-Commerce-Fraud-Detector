@@ -1,0 +1,60 @@
+# Cloudflare Tunnel Configuration
+# E-Commerce Fraud Detector
+#
+# SETUP INSTRUCTIONS:
+# 1. Install cloudflared: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/
+# 2. Authenticate: cloudflared tunnel login
+# 3. Create tunnel: cloudflared tunnel create fraud-detector
+# 4. Copy tunnel ID and update this file
+# 5. Route DNS: cloudflared tunnel route dns fraud-detector YOUR_SUBDOMAIN.YOUR_DOMAIN.com
+# 6. Run tunnel: cloudflared tunnel run fraud-detector
+
+# Tunnel configuration
+tunnel: YOUR_TUNNEL_ID  # Replace with your tunnel ID from step 3
+credentials-file: /home/YOUR_USER/.cloudflared/YOUR_TUNNEL_ID.json
+
+# Origin server settings
+originRequest:
+  connectTimeout: 30s
+  noTLSVerify: false  # Set to true if using self-signed certs locally
+
+# Ingress rules - routes traffic to your services
+ingress:
+  # Main application (goes through Nginx)
+  - hostname: fraud-detector.yourdomain.com
+    service: http://localhost:80
+  
+  # Alternative: Direct API access (optional)
+  # - hostname: api.fraud-detector.yourdomain.com
+  #   service: http://localhost:8000
+  
+  # Catch-all rule (required)
+  - service: http_status:404
+
+# ============================================
+# QUICK START COMMANDS
+# ============================================
+# 
+# # Install cloudflared
+# curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+# chmod +x cloudflared
+# sudo mv cloudflared /usr/local/bin/
+# 
+# # Login to Cloudflare
+# cloudflared tunnel login
+# 
+# # Create tunnel
+# cloudflared tunnel create fraud-detector
+# 
+# # Route DNS (replace with your domain)
+# cloudflared tunnel route dns fraud-detector fraud-detector.yourdomain.com
+# 
+# # Test run
+# cloudflared tunnel --config /path/to/this/config.yml run fraud-detector
+# 
+# # Install as system service (production)
+# sudo cloudflared service install
+# sudo systemctl start cloudflared
+# sudo systemctl enable cloudflared
+# 
+# ============================================

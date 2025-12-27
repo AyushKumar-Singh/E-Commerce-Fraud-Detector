@@ -1,6 +1,7 @@
 # Deployment Guide - E-Commerce Fraud Detector
 
 This guide covers deploying the E-Commerce Fraud Detector to various platforms:
+- [Self-Hosted Production](#self-hosted-production-deployment) - **Full control** (Nginx + SSL + Cloudflare)
 - [CI/CD Pipeline](#cicd-pipeline) - Automated build and deploy
 - [Vercel](#vercel-deployment) - Frontend only (serverless)
 - [Railway](#railway-deployment) - Full-stack (managed PostgreSQL)
@@ -8,6 +9,276 @@ This guide covers deploying the E-Commerce Fraud Detector to various platforms:
 - [Minikube](#minikube-deployment) - Local Kubernetes cluster
 
 ---
+
+## Self-Hosted Production Deployment
+
+> [!TIP]
+> This is the recommended approach if you want **full control** over your infrastructure, similar to what Render or Railway provides, but on your own Linux server.
+
+### Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "Internet"
+        User[👤 User]
+    end
+    
+    subgraph "Edge Access Options"
+        CF[Cloudflare Tunnel]
+        DNS[DuckDNS + Let's Encrypt]
+    end
+    
+    subgraph "Linux Server"
+        UFW[🔥 UFW Firewall<br/>Ports: 80, 443]
+        
+        subgraph "Docker Network"
+            NGINX[🌐 Nginx<br/>Reverse Proxy + SSL]
+            API[⚙️ Flask API<br/>Port 8000]
+            FE[🎨 React Frontend<br/>Port 80]
+            DB[(🐘 PostgreSQL<br/>Port 5432)]
+            REDIS[(📦 Redis Cache)]
+        end
+    end
+    
+    User --> CF
+    User --> DNS
+    CF --> UFW
+    DNS --> UFW
+    UFW --> NGINX
+    NGINX --> FE
+    NGINX --> API
+    API --> DB
+    API --> REDIS
+    
+    style NGINX fill:#4CAF50
+    style API fill:#2196F3
+    style DB fill:#FF9800
+```
+
+### Prerequisites
+
+- Linux server (Ubuntu 22.04+ recommended)
+- Domain name OR DuckDNS subdomain (free)
+- SSH access to server
+- Git installed
+
+---
+
+### Phase 1: Server Preparation & UFW Firewall
+
+```bash
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install essentials
+sudo apt install -y git curl ufw
+
+# Configure UFW firewall
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+
+# Verify
+sudo ufw status
+```
+
+> [!IMPORTANT]
+> Only ports 22 (SSH), 80 (HTTP), and 443 (HTTPS) should be open. Database and Redis are internal only.
+
+---
+
+### Phase 2: Install Docker
+
+```bash
+# Install Docker
+curl -fsSL https://get.docker.com | sudo sh
+
+# Add user to docker group
+sudo usermod -aG docker $USER
+
+# Log out and back in, then verify
+exit
+# SSH back in
+docker --version
+docker compose version
+```
+
+---
+
+### Phase 3: Clone & Configure
+
+```bash
+# Clone repository
+git clone https://github.com/YOUR_USERNAME/E-Commerce_Fraud_Detector.git
+cd E-Commerce_Fraud_Detector
+
+# Create production environment file
+cp .env.production.example .env
+
+# Generate secure secrets
+echo "JWT_SECRET=$(openssl rand -base64 32)"
+echo "ADMIN_SECRET=$(openssl rand -base64 32)"
+echo "API_TOKEN=$(openssl rand -base64 32)"
+echo "POSTGRES_PASSWORD=$(openssl rand -base64 16)"
+
+# Edit .env with generated values
+nano .env
+```
+
+---
+
+### Phase 4: Setup DuckDNS (Free Domain)
+
+1. Go to [duckdns.org](https://www.duckdns.org) and login
+2. Create subdomain: `fraud-detector.duckdns.org`
+3. Configure auto-update:
+
+```bash
+# Edit the DuckDNS script
+nano infra/duckdns/duck.sh
+
+# Update SUBDOMAIN and TOKEN values
+# Make executable
+chmod 700 infra/duckdns/duck.sh
+
+# Test
+./infra/duckdns/duck.sh
+cat ~/duckdns/duck.log
+
+# Add to cron (every 5 minutes)
+crontab -e
+# Add: */5 * * * * ~/E-Commerce_Fraud_Detector/infra/duckdns/duck.sh >/dev/null 2>&1
+```
+
+See [infra/duckdns/README.md](infra/duckdns/README.md) for detailed setup.
+
+---
+
+### Phase 5: Get SSL Certificate (Let's Encrypt)
+
+```bash
+# Install Certbot
+sudo apt install certbot -y
+
+# Get certificate (standalone mode - stop any web servers first)
+sudo certbot certonly --standalone -d fraud-detector.duckdns.org
+
+# Verify certificate
+sudo ls -la /etc/letsencrypt/live/fraud-detector.duckdns.org/
+
+# Update Nginx config with your domain
+nano infra/nginx/default.conf
+# Replace YOUR_DOMAIN with fraud-detector.duckdns.org
+
+# Test auto-renewal
+sudo certbot renew --dry-run
+```
+
+---
+
+### Phase 6: Deploy with Docker Compose
+
+```bash
+cd infra/compose
+
+# Build and start all services
+docker compose -f docker-compose.prod.yml up -d --build
+
+# Check status
+docker compose ps
+
+# View logs
+docker compose logs -f nginx
+docker compose logs -f api
+```
+
+**Verify deployment:**
+```bash
+# Health check
+curl -k https://localhost/health
+
+# Or with your domain
+curl https://fraud-detector.duckdns.org/health
+```
+
+---
+
+### Phase 7: Cloudflare Tunnel (Optional - Zero Trust Access)
+
+> [!NOTE]
+> Use Cloudflare Tunnel for zero exposed ports. Great for home servers or extra security.
+
+```bash
+# Install cloudflared
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+chmod +x cloudflared
+sudo mv cloudflared /usr/local/bin/
+
+# Login (opens browser)
+cloudflared tunnel login
+
+# Create tunnel
+cloudflared tunnel create fraud-detector
+# Note your TUNNEL_ID from output
+
+# Configure - edit infra/cloudflared/config.yml
+# Update YOUR_TUNNEL_ID and YOUR_USER
+
+# Route DNS in Cloudflare dashboard
+cloudflared tunnel route dns fraud-detector fraud-detector.yourdomain.com
+
+# Install as system service
+sudo cloudflared --config /path/to/config.yml service install
+sudo systemctl enable --now cloudflared
+```
+
+---
+
+### Access Your Application
+
+| Method | URL | Use Case |
+|--------|-----|----------|
+| **DuckDNS + Let's Encrypt** | `https://fraud-detector.duckdns.org` | Free, self-managed |
+| **Cloudflare Tunnel** | `https://fraud-detector.yourdomain.com` | Zero exposed ports |
+
+---
+
+### Useful Commands Reference
+
+```bash
+# View containers
+docker compose -f docker-compose.prod.yml ps
+
+# View logs
+docker compose -f docker-compose.prod.yml logs -f api
+
+# Rebuild after changes
+docker compose -f docker-compose.prod.yml up -d --build
+
+# Database backup
+docker compose exec db pg_dump -U postgres frauddb > backup_$(date +%Y%m%d).sql
+
+# Check Nginx config
+docker compose exec nginx nginx -t
+```
+
+---
+
+### Security Checklist
+
+- [ ] UFW enabled with only ports 22, 80, 443
+- [ ] Strong passwords in `.env` (use generated secrets)
+- [ ] SSL certificate installed and auto-renewal tested
+- [ ] Database port (5432) not exposed externally
+- [ ] Redis password set
+- [ ] Regular backups configured
+
+---
+
+
 
 ## CI/CD Pipeline
 
